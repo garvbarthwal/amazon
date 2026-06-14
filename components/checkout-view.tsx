@@ -4,9 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-store";
+import { usePredictionStore } from "@/lib/prediction-store";
+import { isRecurring } from "@/lib/recurring";
 import { useHydratedCart } from "@/hooks/use-hydrated-cart";
 import { formatRupees } from "@/lib/format";
 import type { ProductDTO } from "@/lib/services/products";
+import { ProductTile } from "@/components/product-tile";
 
 type PayMethod = "upi" | "card" | "cod";
 type DeliverySpeed = "express" | "standard";
@@ -15,6 +18,7 @@ export function CheckoutView() {
   const router = useRouter();
   const { items, hydrated } = useHydratedCart();
   const clear = useCart((s) => s.clear);
+  const appendOrder = usePredictionStore((s) => s.appendOrder);
 
   const [products, setProducts] = useState<ProductDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,6 +85,10 @@ export function CheckoutView() {
       });
       if (!res.ok) throw new Error("Order failed");
       const { orderId } = (await res.json()) as { orderId: string };
+      // Record any recurring/replenishable items into the prediction history
+      // so the "Buy it again" nudge moves their next due date forward.
+      const recurringIds = lines.filter((l) => isRecurring(l.p)).map((l) => l.p.id);
+      appendOrder(recurringIds);
       clear();
       router.push(`/order/${orderId}`);
     } catch {
@@ -175,8 +183,8 @@ export function CheckoutView() {
             <ul className="flex flex-col gap-3">
               {lines.map(({ p, qty }) => (
                 <li key={p.id} className="flex items-center gap-3 text-[13px]">
-                  <div className="w-12 h-12 bg-[#f7f8f8] rounded-md overflow-hidden shrink-0">
-                    {p.img && <img src={p.img} alt="" className="w-full h-full object-contain" />}
+                  <div className="w-12 h-12 rounded-md overflow-hidden shrink-0">
+                    <ProductTile product={p} size="thumb-xs" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="line-clamp-1 font-bold">{p.name}</div>

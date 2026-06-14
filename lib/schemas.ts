@@ -3,7 +3,6 @@ import { z } from "zod";
 export const QuickRequestSchema = z.object({
   intent: z.string().min(1).max(500),
   groupSize: z.number().int().min(1).max(20).default(2),
-  budgetTier: z.enum(["essentials", "standard", "premium"]).default("standard"),
   zoneCode: z.string().min(3).max(10).default("110001"),
 });
 export type QuickRequest = z.infer<typeof QuickRequestSchema>;

@@ -13,11 +13,10 @@ export type CartLineItem = {
   qty: number;
   query: string;
   deliveryMin: number;
+  tags: string[];
 };
 
-export type CartTier = {
-  title: "Essentials" | "Standard" | "Premium";
-  key: "essentials" | "standard" | "premium";
+export type SingleCart = {
   items: CartLineItem[];
   total: number;
   savings: number;
@@ -25,22 +24,13 @@ export type CartTier = {
   deliveryMin: number;
 };
 
-function pickEssentials(c: Candidate[]): Candidate | null {
-  const top = c.slice(0, Math.min(c.length, 6));
-  return top.slice().sort((a, b) => a.price - b.price)[0] ?? null;
-}
-
-function pickStandard(c: Candidate[]): Candidate | null {
-  return (
-    c
-      .slice(0, Math.min(c.length, 12))
-      .map((x) => ({ x, score: x.matchScore / Math.log(x.price + 2) }))
-      .sort((a, b) => b.score - a.score)[0]?.x ?? null
-  );
-}
-
-function pickPremium(c: Candidate[]): Candidate | null {
-  return c.slice().sort((a, b) => b.matchScore - a.matchScore)[0] ?? null;
+// "Best balance" pick — highest matchScore for the price.
+function pickBestBalance(c: Candidate[]): Candidate | null {
+  if (c.length === 0) return null;
+  return c
+    .slice(0, Math.min(c.length, 12))
+    .map((x) => ({ x, score: x.matchScore / Math.log(x.price + 2) }))
+    .sort((a, b) => b.score - a.score)[0]?.x ?? null;
 }
 
 function lineFromCandidate(c: Candidate, qty: number, query: string): CartLineItem {
@@ -55,23 +45,25 @@ function lineFromCandidate(c: Candidate, qty: number, query: string): CartLineIt
     qty,
     query,
     deliveryMin: c.deliveryMin,
+    tags: c.tags,
   };
 }
 
-function totals(items: CartLineItem[]): { total: number; savings: number; eta: number } {
-  let total = 0, savings = 0, eta = 0;
+function totals(items: CartLineItem[]): { total: number; savings: number; eta: number; count: number } {
+  let total = 0, savings = 0, eta = 0, count = 0;
   for (const i of items) {
     total += i.price * i.qty;
     if (i.mrp > i.price) savings += (i.mrp - i.price) * i.qty;
     if (i.deliveryMin > eta) eta = i.deliveryMin;
+    count += i.qty;
   }
-  return { total, savings, eta };
+  return { total, savings, eta, count };
 }
 
-export async function buildTiers(
+export async function buildSingleCart(
   decomposed: ClaudeIntent,
   groupSize: number,
-): Promise<CartTier[]> {
+): Promise<SingleCart> {
   const perQuery = await Promise.all(
     decomposed.shopping_list.map(async (q) => ({
       query: q.query,
@@ -80,51 +72,25 @@ export async function buildTiers(
     })),
   );
 
-  const essentials: CartLineItem[] = [];
-  const standard: CartLineItem[] = [];
-  const premium: CartLineItem[] = [];
-
-  const seenE = new Set<string>();
-  const seenS = new Set<string>();
-  const seenP = new Set<string>();
-
-  const push = (
-    bucket: CartLineItem[],
-    pickedId: Set<string>,
-    picked: Candidate | null,
-    qty: number,
-    query: string,
-  ) => {
-    if (!picked || pickedId.has(picked.id)) return;
-    pickedId.add(picked.id);
-    bucket.push(lineFromCandidate(picked, qty, query));
-  };
-
+  const merged = new Map<string, CartLineItem>();
   for (const r of perQuery) {
-    if (r.candidates.length === 0) continue;
-    push(essentials, seenE, pickEssentials(r.candidates), r.requestedQty, r.query);
-    push(standard,   seenS, pickStandard(r.candidates),   r.requestedQty, r.query);
-    push(premium,    seenP, pickPremium(r.candidates),    r.requestedQty, r.query);
+    const pick = pickBestBalance(r.candidates);
+    if (!pick) continue;
+    const existing = merged.get(pick.id);
+    if (existing) {
+      existing.qty += r.requestedQty;
+    } else {
+      merged.set(pick.id, lineFromCandidate(pick, r.requestedQty, r.query));
+    }
   }
 
-  const buildTier = (
-    title: CartTier["title"],
-    key: CartTier["key"],
-    items: CartLineItem[],
-  ): CartTier => {
-    const t = totals(items);
-    return {
-      title, key, items,
-      total: t.total,
-      savings: t.savings,
-      deliveryMin: t.eta || 13,
-      itemCount: items.reduce((s, i) => s + i.qty, 0),
-    };
+  const items = Array.from(merged.values());
+  const t = totals(items);
+  return {
+    items,
+    total: t.total,
+    savings: t.savings,
+    itemCount: t.count,
+    deliveryMin: t.eta || 13,
   };
-
-  return [
-    buildTier("Essentials", "essentials", essentials),
-    buildTier("Standard",   "standard",   standard),
-    buildTier("Premium",    "premium",    premium),
-  ];
 }

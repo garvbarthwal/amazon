@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getProduct, getRelated } from "@/lib/services/products";
 import { ProductRow } from "@/components/product-row";
 import { ProductDetailClient } from "@/components/product-detail-client";
+import { ProductTile } from "@/components/product-tile";
 import { discountPct, formatCount, starPct, slugify } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -34,32 +35,13 @@ export default async function ProductPage({
 
       <section className="bg-white border border-[#e7e7e7] rounded-xl p-5 grid grid-cols-1 lg:grid-cols-[72px_480px_1fr_320px] gap-5">
         <div className="hidden lg:flex flex-col gap-2">
-          <div
-            className="w-[72px] h-[72px] rounded-md bg-[#f7f8f8] border-2 border-[#ff9900] flex items-center justify-center overflow-hidden"
-          >
-            {product.img ? (
-              <img src={product.img} alt="" className="w-full h-full object-contain p-1" />
-            ) : (
-              <div className="w-full h-full" style={{ backgroundImage: "repeating-linear-gradient(45deg,#f2f3f3 0 10px,#f7f8f8 10px 20px)" }} />
-            )}
+          <div className="w-[72px] h-[72px] rounded-md border-2 border-[#ff9900] overflow-hidden">
+            <ProductTile product={product} size="thumb-sm" showSize={false} />
           </div>
         </div>
 
-        <div className="relative bg-[#f7f8f8] rounded-lg overflow-hidden h-[420px] lg:h-[480px]">
-          {product.img ? (
-            <img
-              src={product.img}
-              alt={product.name}
-              className="w-full h-full object-contain p-6 bg-white"
-            />
-          ) : (
-            <div
-              className="absolute inset-0 flex items-center justify-center p-6 text-center"
-              style={{ backgroundImage: "repeating-linear-gradient(45deg,#f2f3f3 0 10px,#f7f8f8 10px 20px)" }}
-            >
-              <span className="font-mono text-[12px] text-[#9aa0a6] line-clamp-6">{product.name}</span>
-            </div>
-          )}
+        <div className="relative rounded-lg overflow-hidden h-[420px] lg:h-[480px]">
+          <ProductTile product={product} size="card" />
         </div>
 
         <div className="min-w-0">

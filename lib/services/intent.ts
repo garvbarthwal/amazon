@@ -3,7 +3,7 @@ import { invokeLLM, isLLMConfigured } from "@/lib/gemini";
 
 const SYSTEM_PROMPT = [
   "You are a shopping-intent decomposition engine for a quick-commerce grocery app.",
-  "Given a raw intent plus groupSize and budgetTier, respond with STRICT minified JSON only (no markdown, no prose):",
+  "Given a raw intent plus groupSize, respond with STRICT minified JSON only (no markdown, no prose):",
   '{"vibe_category":"<one word: party|movie|healthy|breakfast|comfort|hydration|restock|celebration|snack>","shopping_list":[{"query":"<2-4 word generic product search>","quantity":<integer>}]}.',
   "Decompose into 3-6 grocery queries, scale quantities for groupSize people, use generic queries (e.g. \"cola soft drink\",\"potato chips\",\"popcorn\",\"chocolate\",\"milk\",\"bread\") not brand names.",
   "Quantities must be sensible household amounts: pantry staples (milk, bread, eggs, cereal, butter) = ceil(groupSize/2) clamped 1..4; drinks/snacks/chocolate = groupSize clamped 2..8; one-off items (popcorn) fixed 2.",
@@ -105,13 +105,12 @@ function tryParseJSON(s: string): unknown {
 export async function decomposeIntent(
   intent: string,
   groupSize: number,
-  budgetTier: "essentials" | "standard" | "premium",
 ): Promise<DecomposedIntent> {
   if (!isLLMConfigured()) {
     return { ...fallbackDecompose(intent, groupSize), usedFallback: true };
   }
   try {
-    const userMsg = JSON.stringify({ intent, groupSize, budgetTier });
+    const userMsg = JSON.stringify({ intent, groupSize });
     const raw = await invokeLLM({ system: SYSTEM_PROMPT, user: userMsg, maxTokens: 500, temperature: 0.2 });
     const parsed = tryParseJSON(raw);
     const validated = ClaudeIntentSchema.safeParse(parsed);

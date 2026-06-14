@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
 import { useCart } from "@/lib/cart-store";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { discountPct, formatCount, starPct } from "@/lib/format";
 import type { ProductDTO } from "@/lib/services/products";
+import { ProductTile } from "@/components/product-tile";
 
 export function ProductCard({ product }: { product: ProductDTO }) {
   const router = useRouter();
@@ -15,9 +14,7 @@ export function ProductCard({ product }: { product: ProductDTO }) {
   const inc = useCart((s) => s.inc);
   const dec = useCart((s) => s.dec);
 
-  const [imgError, setImgError] = useState(false);
   const pct = discountPct(product.price, product.mrp);
-  const showImg = !!product.img && !imgError;
 
   const onOpen = () => router.push(`/product/${product.id}`);
   const onAdd = (e: React.MouseEvent) => {
@@ -28,28 +25,8 @@ export function ProductCard({ product }: { product: ProductDTO }) {
 
   return (
     <div className="relative flex flex-col w-full h-full bg-white border border-[#e7e7e7] rounded-lg p-[10px] ap-card-hover">
-      <div className="relative h-[170px] rounded-md overflow-hidden bg-[#f7f8f8] mb-2">
-        {!showImg && (
-          <div
-            className="absolute inset-0 flex items-center justify-center p-[14px] text-center"
-            style={{ backgroundImage: "repeating-linear-gradient(45deg,#f2f3f3 0 10px,#f7f8f8 10px 20px)" }}
-          >
-            <span className="font-mono text-[11px] text-[#9aa0a6] leading-[1.4] line-clamp-3">
-              {product.name}
-            </span>
-          </div>
-        )}
-        {showImg && (
-          <Image
-            src={product.img}
-            alt={product.name}
-            fill
-            sizes="(max-width:768px) 50vw, 220px"
-            className="object-contain p-2 bg-white"
-            onError={() => setImgError(true)}
-            unoptimized
-          />
-        )}
+      <div className="relative h-[170px] rounded-md overflow-hidden mb-2">
+        <ProductTile product={product} size="card" />
         <div className="absolute top-2 left-2 flex items-center gap-1 bg-[rgba(19,25,33,0.88)] text-white text-[11px] font-bold px-[8px] py-[3px] rounded-[20px] z-10">
           <span className="w-[6px] h-[6px] rounded-full bg-[#46e07f] inline-block" />
           {product.deliveryMin} min

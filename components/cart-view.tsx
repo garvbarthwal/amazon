@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/lib/cart-store";
 import { useHydratedCart } from "@/hooks/use-hydrated-cart";
 import { formatRupees } from "@/lib/format";
 import type { ProductDTO } from "@/lib/services/products";
+import { ProductTile } from "@/components/product-tile";
 
 export function CartView() {
   const { items, count, hydrated } = useHydratedCart();
@@ -17,22 +17,36 @@ export function CartView() {
   const [products, setProducts] = useState<ProductDTO[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Refetch product details only when the *set of IDs* changes.
+  // Pure qty inc/dec/remove don't need a network round-trip — totals are
+  // recomputed locally from the live cart store on every render.
+  const idsKey = useMemo(() => Object.keys(items).sort().join(","), [items]);
+
   useEffect(() => {
     if (!hydrated) return;
-    const ids = Object.keys(items);
-    if (ids.length === 0) {
+    if (idsKey === "") {
       setProducts([]);
       setLoading(false);
       return;
     }
     setLoading(true);
-    fetch(`/api/products/by-ids?ids=${ids.join(",")}`)
+    let cancelled = false;
+    fetch(`/api/products/by-ids?ids=${idsKey}`)
       .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((d: { items: ProductDTO[] }) => setProducts(d.items ?? []))
-      .finally(() => setLoading(false));
-  }, [hydrated, JSON.stringify(items)]);
+      .then((d: { items: ProductDTO[] }) => {
+        if (cancelled) return;
+        setProducts(d.items ?? []);
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [hydrated, idsKey]);
 
-  if (!hydrated || loading) {
+  // Show the skeleton only on the very first load. After that, the cart
+  // stays interactive while a refetch (when an id is added) runs in the
+  // background — the user keeps seeing the items they already had.
+  const firstLoad = loading && products.length === 0;
+
+  if (!hydrated || firstLoad) {
     return (
       <main className="max-w-[1500px] mx-auto px-[18px] pt-[14px] pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-5">
@@ -80,12 +94,8 @@ export function CartView() {
                 key={p.id}
                 className="grid grid-cols-[120px_1fr_auto] gap-4 py-4 border-b border-[#eee] last:border-b-0 items-start"
               >
-                <Link href={`/product/${p.id}`} className="block w-[120px] h-[120px] bg-[#f7f8f8] rounded-md overflow-hidden">
-                  {p.img ? (
-                    <img src={p.img} alt={p.name} className="w-full h-full object-contain p-2 bg-white" />
-                  ) : (
-                    <div className="w-full h-full" style={{ backgroundImage: "repeating-linear-gradient(45deg,#f2f3f3 0 10px,#f7f8f8 10px 20px)" }} />
-                  )}
+                <Link href={`/product/${p.id}`} className="block w-[120px] h-[120px] rounded-md overflow-hidden">
+                  <ProductTile product={p} size="thumb-md" />
                 </Link>
                 <div className="min-w-0">
                   <Link href={`/product/${p.id}`} className="text-[15px] font-bold text-[#0f1111] hover:text-[#c45500] line-clamp-2">

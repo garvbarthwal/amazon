@@ -49,3 +49,39 @@ export const CATEGORY_TILE_META: Record<string, { icon: string; bg: string }> = 
 
 export const tileMeta = (name: string) =>
   CATEGORY_TILE_META[name] ?? { icon: "🛒", bg: "#f0f2f2" };
+
+// ---- Product color tiles (stand-ins for product photos) ----
+// Returns { bg, fg } for soft tinted product tiles. Keyword-derived from
+// name + brand + tags. First match wins; falls back to neutral grey.
+export type ProductTint = { bg: string; fg: string };
+
+const TINT_RULES: Array<[RegExp, string, string]> = [
+  [/cola|coke|pepsi/, "#f4e2dc", "#9c2f1c"],
+  [/lemon|lime|limca|7up|dew|citrus/, "#e9f2cf", "#566b14"],
+  [/orange|fanta|tropicana/, "#ffe7c6", "#b25a08"],
+  [/mango|frooti|maaza/, "#ffedbe", "#a9760a"],
+  [/water|bisleri|mineral/, "#dbeefb", "#1c6a94"],
+  [/energy|red ?bull|caffeine/, "#e2e5fb", "#34409e"],
+  [/iced tea|lipton|\btea\b/, "#f1e6cb", "#876a22"],
+  [/badam|almond/, "#f6ead3", "#8a6a2c"],
+  [/\bmilk\b|dairy/, "#fbf4e2", "#8f7327"],
+  [/butter/, "#fdf1cf", "#9a7a16"],
+  [/bread/, "#f3e4cd", "#8a5a22"],
+  [/\begg/, "#fdf2cf", "#9a7d22"],
+  [/noodle|maggi|instant/, "#fbe4c6", "#a85c12"],
+  [/cereal|corn ?flakes|flakes/, "#fceabf", "#a07410"],
+  [/popcorn/, "#fbeecb", "#9c7414"],
+  [/chocolate|silk|kitkat|ferrero|dairy milk/, "#ece0d2", "#6a4324"],
+  [/biscuit|cookie|oreo/, "#ece2d6", "#6f4b28"],
+  [/chips|kurkure|bingo|doritos|pringles|namkeen|bhujia|snack/, "#fdeaca", "#a6580c"],
+];
+
+export function tileTint(p: { name?: string; brand?: string; tags?: string[] | null }): ProductTint {
+  const hay = (
+    (p.name ?? "") + " " + (p.brand ?? "") + " " + (p.tags ?? []).join(" ")
+  ).toLowerCase();
+  for (const [re, bg, fg] of TINT_RULES) {
+    if (re.test(hay)) return { bg, fg };
+  }
+  return { bg: "#eef1f3", fg: "#37475a" };
+}

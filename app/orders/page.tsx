@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listOrdersForUser } from "@/lib/services/orders";
 import { formatRupees, orderIdShort } from "@/lib/format";
+import { ProductTile } from "@/components/product-tile";
 
 export const dynamic = "force-dynamic";
 
@@ -51,8 +52,8 @@ export default async function OrdersPage() {
                     <ul className="flex flex-col gap-3">
                       {items.slice(0, 4).map((i) => (
                         <li key={i.productId + i.qty} className="flex items-center gap-3 text-[13px]">
-                          <div className="w-14 h-14 bg-[#f7f8f8] rounded-md overflow-hidden shrink-0">
-                            {i.img && <img src={i.img} alt="" className="w-full h-full object-contain" />}
+                          <div className="w-14 h-14 rounded-md overflow-hidden shrink-0">
+                            <ProductTile product={{ name: i.name, brand: i.brand, size: i.size, img: i.img }} size="thumb-xs" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <Link href={`/product/${i.productId}`} className="text-[#007185] hover:text-[#c45500] line-clamp-1 font-bold">{i.name}</Link>

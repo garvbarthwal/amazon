@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { HeroQuick } from "@/components/hero-quick";
 import { ProductRow } from "@/components/product-row";
+import { PredictiveSection } from "@/components/predictive-section";
 import {
   listCategories,
   listByCategory,
@@ -11,7 +12,10 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const cats = await listCategories();
-  const tiles = cats.slice(0, 5);
+  // Only show category tiles whose category has bespoke art (icon + bg)
+  // in the theme map. Categories that fall back to the generic 🛒/grey
+  // would look like placeholders, so hide them from the home grid.
+  const tiles = cats.filter((c) => c.hasArt).slice(0, 5);
   const pickRow = (preferred: string[]): { name: string } | null => {
     for (const want of preferred) {
       const m = cats.find((c) => c.name.toLowerCase().includes(want.toLowerCase()));
@@ -33,6 +37,8 @@ export default async function HomePage() {
   return (
     <main className="max-w-[1500px] mx-auto p-[18px]">
       <HeroQuick />
+
+      <PredictiveSection />
 
       {tiles.length > 0 && (
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-[14px] mb-6">

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { slugify, unslugify } from "@/lib/format";
-import { tileMeta } from "@/lib/theme";
+import { tileMeta, CATEGORY_TILE_META } from "@/lib/theme";
 
 export type ProductDTO = {
   id: string;
@@ -33,6 +33,7 @@ export type CategoryDTO = {
   count: number;
   icon: string;
   bg: string;
+  hasArt: boolean;
 };
 
 let categoryCache: { at: number; data: CategoryDTO[] } | null = null;
@@ -58,6 +59,9 @@ export async function listCategories(): Promise<CategoryDTO[]> {
           count: r._count._all,
           icon: meta.icon,
           bg: meta.bg,
+          // True only when the category has explicit metadata in the
+          // theme map — used on the home page to skip generic-fallback tiles.
+          hasArt: r.category in CATEGORY_TILE_META,
         };
       });
     categoryCache = { at: Date.now(), data };

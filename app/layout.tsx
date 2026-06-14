@@ -1,8 +1,10 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { QuickModeModal } from "@/components/quick-mode/quick-mode-modal";
+import { ConversationalModal } from "@/components/conversational/conversational-modal";
 import { listCategories } from "@/lib/services/products";
 
 export const metadata: Metadata = {
@@ -24,7 +26,9 @@ export default async function RootLayout({
       <body>
         <Header navCategories={navCategories} />
         {children}
+        <Footer />
         <QuickModeModal />
+        <ConversationalModal />
         <Toaster />
       </body>
     </html>

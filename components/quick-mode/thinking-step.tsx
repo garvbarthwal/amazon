@@ -7,66 +7,66 @@ const STAGES = [
   "Understanding your intent",
   "Classifying the vibe",
   "Searching the catalog",
-  "Assembling 3 carts",
+  "Assembling your cart",
 ];
 
-export function QuickThinkingStep() {
+export function QuickThinkingStep({ intent }: { intent: string }) {
   const [done, setDone] = useState(0);
 
   useEffect(() => {
-    const ticks = STAGES.map((_, i) =>
-      window.setTimeout(() => setDone(i + 1), 600 * (i + 1)),
+    const ticks = [600, 1150, 1650, 1900].map((ms, i) =>
+      window.setTimeout(() => setDone(i + 1), ms),
     );
     return () => ticks.forEach(clearTimeout);
   }, []);
 
   return (
-    <div className="py-2">
-      <h2 className="text-[20px] font-extrabold mb-1">Building your carts</h2>
-      <p className="text-[14px] text-[#565959] mb-5">
-        We’re thinking through your request — this usually takes a few seconds.
-      </p>
-
-      <ul className="flex flex-col gap-3">
+    <div className="px-[30px] py-[46px] pb-[50px] text-center">
+      <div
+        className="w-16 h-16 mx-auto mb-[22px] rounded-full"
+        style={{
+          border: "4px solid #f0e0c8",
+          borderTopColor: "#ff9900",
+          animation: "ap-spin 0.9s linear infinite",
+        }}
+      />
+      <div className="text-[19px] font-extrabold mb-1">Building your cart…</div>
+      <div className="text-[13px] text-[#565959] mb-[26px]">
+        Turning “{intent}” into a shopping plan.
+      </div>
+      <div className="max-w-[340px] mx-auto flex flex-col gap-[14px] text-left">
         {STAGES.map((label, i) => {
           const isDone = i < done;
           const isActive = i === done;
           return (
-            <li
+            <div
               key={label}
-              className="flex items-center gap-3 rounded-lg border px-4 py-3"
-              style={{
-                borderColor: isDone ? "#cfe9d6" : isActive ? "#ffe2b3" : "#eee",
-                background: isDone ? "#e3f5ea" : isActive ? "#fff8eb" : "#fafafa",
-              }}
+              className="flex items-center gap-3 transition-opacity duration-300"
+              style={{ opacity: isDone || isActive ? 1 : 0.5 }}
             >
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center"
+              <span
+                className="w-6 h-6 rounded-full flex items-center justify-center text-[13px] font-extrabold shrink-0"
                 style={{
-                  background: isDone ? "#007600" : isActive ? "#ff9900" : "#e7e7e7",
+                  background: isDone ? "#007600" : isActive ? "#fff" : "#eef1f3",
+                  color: isDone ? "#fff" : isActive ? "#ff9900" : "#8a8f94",
+                  border: isActive ? "2px solid #ff9900" : "none",
                 }}
               >
-                {isDone ? (
-                  <Check size={16} stroke="#fff" strokeWidth={3} />
-                ) : (
-                  <span
-                    className={isActive ? "block w-3 h-3 rounded-full bg-white animate-pulse" : "block w-2 h-2 rounded-full bg-[#bbb]"}
-                  />
-                )}
-              </div>
+                {isDone ? <Check size={14} stroke="#fff" strokeWidth={3} /> : isActive ? "●" : i + 1}
+              </span>
               <span
                 className="text-[14px]"
                 style={{
                   color: isDone || isActive ? "#0f1111" : "#8a8f94",
-                  fontWeight: isDone ? 700 : 500,
+                  fontWeight: isDone ? 700 : isActive ? 800 : 400,
                 }}
               >
                 {label}
               </span>
-            </li>
+            </div>
           );
         })}
-      </ul>
+      </div>
     </div>
   );
 }

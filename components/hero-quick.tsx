@@ -1,23 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useQuickMode } from "@/lib/quick-mode-store";
+import { useEffect, useState } from "react";
+import { Sparkles } from "lucide-react";
+import { useConv } from "@/lib/conv-store";
 
 const CHIPS = [
-  "movie night for 4, medium budget",
-  "breakfast for 4 people",
-  "weekly grocery restock for a family",
+  { label: "🎬 Movie night for 4", text: "snacks and cold drinks for movie night, 4 people" },
+  { label: "🏠 Weekly home restock", text: "weekly grocery restock for a family of 3" },
+  { label: "☀️ Summer hydration kit", text: "cold drinks and water for a hot day, 6 people" },
 ];
 
 export function HeroQuick() {
   const [value, setValue] = useState("");
-  const open = useQuickMode((s) => s.openModal);
+  const open = useConv((s) => s.openWithSeed);
+  const isOpen = useConv((s) => s.open);
 
-  const submit = () => {
-    if (!value.trim()) return open();
-    open({ intent: value.trim(), groupSize: 4, budget: "standard" });
-  };
+  // Clear local input when the modal closes so reopening starts fresh.
+  useEffect(() => {
+    if (!isOpen) setValue("");
+  }, [isOpen]);
+
+  const submit = () => open(value);
 
   return (
     <section
@@ -33,24 +36,26 @@ export function HeroQuick() {
           className="inline-flex items-center gap-[7px] text-[#ffce8a] text-[12px] font-extrabold tracking-[0.06em] px-3 py-[6px] rounded-[20px] mb-[14px] uppercase"
           style={{ background: "rgba(255,153,0,0.16)" }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="#ffce8a">
-            <path d="M12 2l1.8 6.4L20 10l-6.2 1.6L12 18l-1.8-6.4L4 10l6.2-1.6z" />
-          </svg>
+          <Sparkles size={14} fill="#ffce8a" stroke="none" />
           New · Powered by AI
         </div>
         <h1 className="m-0 mb-2 text-[38px] leading-[1.1] font-extrabold tracking-[-0.5px]">
           Tell us the plan.<br />Get the cart in seconds.
         </h1>
         <p className="m-0 mb-5 text-[16px] text-[#c8d0d8] max-w-[560px]">
-          Skip the search and scroll. Describe what you need — “movie night for 4, medium budget” — and Quick Mode builds a ready-to-checkout cart for you.
+          Skip the search and scroll. Describe what you need — “movie night for 4” — and our AI assistant builds a ready-to-checkout cart with you, right here.
         </p>
         <div className="flex gap-[10px] max-w-[620px]">
           <input
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+              setValue(e.target.value);
+              // Open the conversational overlay the moment the user starts typing.
+              if (!isOpen && e.target.value.trim().length > 0) open(e.target.value);
+            }}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="e.g. movie night for 4 people, medium budget"
-            className="flex-1 h-[52px] border-0 rounded-[10px] px-[18px] text-[16px] outline-none text-[#0f1111]"
+            placeholder="e.g. movie night for 4 people"
+            className="flex-1 h-[52px] border-0 rounded-[10px] px-[18px] text-[16px] outline-none text-[#0f1111] bg-white placeholder:text-[#8a8f94]"
           />
           <button
             onClick={submit}
@@ -63,15 +68,15 @@ export function HeroQuick() {
         <div className="flex flex-wrap gap-2 mt-4">
           {CHIPS.map((c) => (
             <button
-              key={c}
-              onClick={() => open({ intent: c, groupSize: 4, budget: "standard" })}
+              key={c.label}
+              onClick={() => open(c.text)}
               className="text-[#e7eaed] text-[13px] px-[13px] py-[7px] rounded-[18px] cursor-pointer"
               style={{
                 background: "rgba(255,255,255,0.1)",
                 border: "1px solid rgba(255,255,255,0.18)",
               }}
             >
-              {c}
+              {c.label}
             </button>
           ))}
         </div>

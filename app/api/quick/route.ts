@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { QuickRequestSchema } from "@/lib/schemas";
 import { decomposeIntent } from "@/lib/services/intent";
-import { buildTiers } from "@/lib/services/tier-builder";
+import { buildSingleCart } from "@/lib/services/tier-builder";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -12,17 +12,16 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { intent, groupSize, budgetTier, zoneCode } = parsed.data;
+  const { intent, groupSize, zoneCode } = parsed.data;
 
-  const decomposed = await decomposeIntent(intent, groupSize, budgetTier);
-  const carts = await buildTiers(decomposed, groupSize);
+  const decomposed = await decomposeIntent(intent, groupSize);
+  const cart = await buildSingleCart(decomposed, groupSize);
 
   return NextResponse.json({
     vibe_category: decomposed.vibe_category,
     shopping_list: decomposed.shopping_list,
-    carts,
+    cart,
     usedFallback: decomposed.usedFallback,
     zoneCode,
-    budgetTier,
   });
 }
