@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <style>
+    *{box-sizing:border-box;}
+    body{margin:0;background:#eaeded;font-family:Arial,Helvetica,sans-serif;color:#0f1111;-webkit-font-smoothing:antialiased;}
+    ::-webkit-scrollbar{height:8px;width:8px;}
+    ::-webkit-scrollbar-thumb{background:#c7cdd1;border-radius:8px;}
+    @keyframes apSpin{to{transform:rotate(360deg);}}
+    @keyframes apPulse{0%,100%{opacity:.35;}50%{opacity:1;}}
+    @keyframes apRise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes apToast{0%{opacity:0;transform:translateY(20px);}12%{opacity:1;transform:translateY(0);}88%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(20px);}}
+    @keyframes apFade{from{opacity:0;}to{opacity:1;}}
+    @keyframes apZoom{from{opacity:0;transform:scale(0.9) translateY(18px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    @keyframes apMsgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes apBlink{0%,100%{opacity:0.25;}50%{opacity:1;}}
+  </style>
+</helmet>
+<div data-screen-label="Amazon Picks App" style="min-height:100vh;background:#eaeded;font-family:Arial,Helvetica,sans-serif;">
+
+  <!-- ===================== TOP NAV ===================== -->
+  <header style="position:sticky;top:0;z-index:40;background:#131921;color:#fff;">
+    <div style="display:flex;align-items:center;gap:14px;padding:8px 18px;max-width:1680px;margin:0 auto;">
+      <div onClick="{{ goHome }}" style="display:flex;flex-direction:column;align-items:flex-start;cursor:pointer;padding:6px 8px;border:1px solid transparent;border-radius:4px;line-height:1;" style-hover="border-color:#fff;">
+        <div style="display:flex;align-items:baseline;gap:5px;">
+          <span style="font-size:25px;font-weight:800;letter-spacing:-1.2px;color:#fff;">amazon</span>
+          <span style="font-size:22px;font-weight:800;letter-spacing:-0.5px;color:#febd69;">picks</span>
+        </div>
+        <svg width="86" height="11" viewBox="0 0 86 11" style="margin-top:-1px;margin-left:2px;"><path d="M2 3 Q 44 13 84 4" stroke="#ff9900" stroke-width="2.6" fill="none" stroke-linecap="round"></path><path d="M80 2.5 L85 4 L80.5 7.5" stroke="#ff9900" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </div>
+
+      <div onClick="{{ goHome }}" style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:6px 6px;border:1px solid transparent;border-radius:4px;" style-hover="border-color:#fff;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#cfd6dc" stroke-width="1.8"><path d="M12 2C8 2 5 5 5 9c0 5 7 12 7 12s7-7 7-12c0-4-3-7-7-7z"></path><circle cx="12" cy="9" r="2.4"></circle></svg>
+        <div style="line-height:1.15;">
+          <div style="font-size:11px;color:#cfd6dc;">Deliver to Aarav</div>
+          <div style="font-size:13px;font-weight:700;color:#fff;">Connaught Place 110001</div>
+        </div>
+      </div>
+
+      <div style="flex:1;display:flex;align-items:stretch;height:42px;border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 0 0 2px transparent;">
+        <select style="border: none; background: #eef1f3; color: #0f1111; font-size: 13px; padding: 0 12px; font-family: inherit; cursor: pointer; outline: none; width: 109px; height: 42px">
+          <option>All</option>
+          <option>Cold Drinks &amp; Juices</option>
+          <option>Snacks &amp; Munchies</option>
+          <option>Party &amp; Celebrations</option>
+        </select>
+        
+        <input value="{{ searchValue }}" onInput="{{ onSearchInput }}" onKeyDown="{{ onSearchKey }}" placeholder="Search Amazon Picks" style="flex: 1; border: none; outline: none; font-size: 15px; padding: 0 14px; font-family: inherit; color: #0f1111; width: 409px; height: 49px"><button onClick="{{ runSearch }}" style="width:52px;border:none;background:linear-gradient(#ffd97a,#febd69);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#131921" stroke-width="2.2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-5-5" stroke-linecap="round"></path></svg>
+        </button>
+      </div>
+
+      <button onClick="{{ openQuick }}" style="display:flex;align-items:center;gap:7px;height:42px;padding:0 16px;border:none;border-radius:22px;cursor:pointer;background:linear-gradient(95deg,#ff9900,#ff7847);color:#131921;font-family:inherit;font-weight:800;font-size:14px;box-shadow:0 2px 10px rgba(255,140,40,0.45);" style-hover="filter:brightness(1.06);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#131921"><path d="M12 2l1.8 6.4L20 10l-6.2 1.6L12 18l-1.8-6.4L4 10l6.2-1.6z"></path></svg>
+        Quick Mode
+        <span style="font-size:11px;font-weight:700;background:rgba(19,25,33,0.16);padding:2px 6px;border-radius:5px;">AI</span>
+      </button>
+
+      <div style="display:flex;flex-direction:column;line-height:1.15;cursor:pointer;padding:6px 6px;border:1px solid transparent;border-radius:4px;" style-hover="border-color:#fff;">
+        <span style="font-size:11px;color:#cfd6dc;">Hello, Aarav</span>
+        <span style="font-size:13px;font-weight:700;color:#fff;">Account &amp; Lists ▾</span>
+      </div>
+
+      <div onClick="{{ goCart }}" style="position:relative;display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 8px;border:1px solid transparent;border-radius:4px;" style-hover="border-color:#fff;">
+        <div style="position:relative;">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><circle cx="9" cy="20" r="1.3"></circle><circle cx="17" cy="20" r="1.3"></circle><path d="M2 3h3l2.3 12h10l2-8H6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <span style="position:absolute;top:-6px;right:-7px;min-width:20px;height:20px;padding:0 5px;background:#febd69;color:#131921;font-size:12px;font-weight:800;border-radius:10px;display:flex;align-items:center;justify-content:center;">{{ cartCount }}</span>
+        </div>
+        <span style="font-size:14px;font-weight:700;color:#fff;">Cart</span>
+      </div>
+    </div>
+
+    <!-- SUB NAV -->
+    <div style="background:#232f3e;">
+      <div style="display:flex;align-items:center;gap:2px;padding:0 12px;max-width:1680px;margin:0 auto;overflow-x:auto;">
+        <button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:7px;background:transparent;border:1px solid transparent;color:#fff;font-family:inherit;font-size:14px;font-weight:700;padding:9px 10px;cursor:pointer;white-space:nowrap;border-radius:3px;" style-hover="border-color:#fff;">
+          <svg width="18" height="14" viewBox="0 0 18 14" stroke="#fff" stroke-width="1.8"><path d="M1 2h16M1 7h16M1 12h16" stroke-linecap="round"></path></svg>All
+        </button>
+        <sc-for list="{{ navCategories }}" as="cat" hint-placeholder-count="8">
+          <button onClick="{{ cat.onOpen }}" style="background:transparent;border:1px solid transparent;color:#e7eaed;font-family:inherit;font-size:13.5px;padding:9px 10px;cursor:pointer;white-space:nowrap;border-radius:3px;" style-hover="border-color:#fff;color:#fff;">{{ cat.name }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== HOME ===================== -->
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <main data-screen-label="Home" style="max-width:1500px;margin:0 auto;padding:18px;">
+
+      <!-- HERO / QUICK MODE PROMO -->
+      <section style="position:relative;overflow:hidden;border-radius:14px;background:linear-gradient(120deg,#131921 0%,#232f3e 52%,#37475a 100%);color:#fff;padding:34px 38px;margin-bottom:22px;">
+        <div style="position:absolute;right:-40px;top:-40px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,153,0,0.35),transparent 70%);"></div>
+        <div style="position:relative;max-width:760px;">
+          <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,153,0,0.16);color:#ffce8a;font-size:12px;font-weight:800;letter-spacing:0.06em;padding:6px 12px;border-radius:20px;margin-bottom:14px;text-transform:uppercase;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#ffce8a"><path d="M12 2l1.8 6.4L20 10l-6.2 1.6L12 18l-1.8-6.4L4 10l6.2-1.6z"></path></svg>New · Powered by AI
+          </div>
+          <h1 style="margin:0 0 8px;font-size:38px;line-height:1.1;font-weight:800;letter-spacing:-0.5px;">Tell us the plan.<br>Get the cart in seconds.</h1>
+          <p style="margin:0 0 20px;font-size:16px;color:#c8d0d8;max-width:560px;">Skip the search and scroll. Describe what you need — “movie night for 4, medium budget” — and Quick Mode builds a ready-to-checkout cart for you.</p>
+          <div style="display:flex;gap:10px;max-width:620px;">
+            <input value="{{ heroValue }}" onInput="{{ onHeroInput }}" onKeyDown="{{ onHeroKey }}" placeholder="e.g. movie night for 4 people, medium budget" style="flex:1;height:52px;border:none;border-radius:10px;padding:0 18px;font-size:16px;font-family:inherit;outline:none;color:#0f1111;">
+            <button onClick="{{ submitHero }}" style="height:52px;padding:0 26px;border:none;border-radius:10px;cursor:pointer;background:linear-gradient(#ffd97a,#ff9900);color:#131921;font-family:inherit;font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px;" style-hover="filter:brightness(1.05);">Build my cart →</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+            <sc-for list="{{ heroChips }}" as="chip" hint-placeholder-count="3">
+              <button onClick="{{ chip.onClick }}" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);color:#e7eaed;font-family:inherit;font-size:13px;padding:7px 13px;border-radius:18px;cursor:pointer;" style-hover="background:rgba(255,255,255,0.2);">{{ chip.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+
+      <!-- PREDICTIVE: order again, right on time -->
+      <sc-if value="{{ hasPredictions }}" hint-placeholder-val="{{ true }}">
+        <section style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:18px 18px 20px;margin-bottom:22px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <h2 style="margin:0;font-size:21px;font-weight:800;color:#0f1111;">Buy it again, right on time</h2>
+            <span style="display:inline-flex;align-items:center;gap:5px;background:#eef4ff;color:#2a5bd7;font-size:11px;font-weight:800;letter-spacing:0.05em;padding:4px 9px;border-radius:20px;text-transform:uppercase;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#2a5bd7"><path d="M12 2l1.8 6.4L20 10l-6.2 1.6L12 18l-1.8-6.4L4 10l6.2-1.6z"></path></svg>Predicted for you
+            </span>
+          </div>
+          <div style="font-size:13px;color:#565959;margin:4px 0 16px;">Based on how often you reorder — refill before you run out.</div>
+          <div style="display:grid;grid-auto-flow:column;grid-auto-columns:250px;gap:14px;overflow-x:auto;padding-bottom:6px;">
+            <sc-for list="{{ predictions }}" as="pr" hint-placeholder-count="5">
+              <div style="border:1px solid #e3e3e3;border-radius:12px;padding:12px;background:#fff;display:flex;flex-direction:column;">
+                <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+                  <div style="width:66px;height:66px;flex-shrink:0;border-radius:8px;background:{{ pr.tintBg }};display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;box-sizing:border-box;">
+                    <span style="font-size:11px;font-weight:800;color:{{ pr.tintFg }};line-height:1.15;">{{ pr.name }}</span>
+                  </div>
+                  <div style="min-width:0;">
+                    <div style="display:inline-flex;align-items:center;gap:5px;background:#e7f6ec;color:#007600;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:12px;margin-bottom:6px;">⏱ {{ pr.dueLabel }}</div>
+                    <div style="font-size:13.5px;font-weight:700;color:#0f1111;line-height:1.25;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ pr.name }}</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+                  <span style="font-size:12px;color:#565959;">{{ pr.cadence }}</span>
+                  <span style="font-size:16px;font-weight:800;color:#0f1111;">₹{{ pr.price }}</span>
+                </div>
+                <div style="font-size:11px;color:#8a8f94;margin-bottom:10px;">{{ pr.lastLabel }}</div>
+                <button onClick="{{ pr.onAdd }}" style="width:100%;height:36px;background:linear-gradient(#f7dfa5,#f0c14b);border:1px solid #c89411;border-radius:20px;font-family:inherit;font-size:13.5px;font-weight:700;color:#0f1111;cursor:pointer;margin-bottom:8px;" style-hover="background:linear-gradient(#f5d78e,#eeb933);">Add to cart</button>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <button onClick="{{ pr.onSkip }}" style="background:none;border:none;color:#007185;font-family:inherit;font-size:12px;cursor:pointer;padding:2px 4px;" style-hover="text-decoration:underline;">Skip</button>
+                  <button onClick="{{ pr.onSnooze }}" style="background:none;border:none;color:#007185;font-family:inherit;font-size:12px;cursor:pointer;padding:2px 4px;" style-hover="text-decoration:underline;">Snooze</button>
+                  <button onClick="{{ pr.onRemove }}" style="background:none;border:none;color:#8a8f94;font-family:inherit;font-size:12px;cursor:pointer;padding:2px 4px;" style-hover="color:#cc0c39;text-decoration:underline;">Remove</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </sc-if>
+
+      <!-- CATEGORY TILES -->
+      <section style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;">
+        <sc-for list="{{ categoryTiles }}" as="cat" hint-placeholder-count="5">
+          <div onClick="{{ cat.onOpen }}" style="background:#fff;border:1px solid #e7e7e7;border-radius:10px;padding:16px;cursor:pointer;transition:box-shadow .15s,transform .15s;" style-hover="box-shadow:0 6px 18px rgba(0,0,0,0.1);transform:translateY(-2px);">
+            <div style="height:64px;border-radius:8px;background:{{ cat.bg }};display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:28px;">{{ cat.icon }}</div>
+            <div style="font-size:13.5px;font-weight:700;color:#0f1111;line-height:1.25;">{{ cat.name }}</div>
+            <div style="font-size:12px;color:#007185;margin-top:3px;">Shop now →</div>
+          </div>
+        </sc-for>
+      </section>
+
+      <!-- PRODUCT ROWS -->
+      <sc-for list="{{ homeRows }}" as="row" hint-placeholder-count="3">
+        <section style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:18px 18px 20px;margin-bottom:18px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div>
+              <h2 style="margin:0;font-size:21px;font-weight:800;color:#0f1111;">{{ row.title }}</h2>
+              <div style="font-size:13px;color:#565959;margin-top:2px;">{{ row.subtitle }}</div>
+            </div>
+            <button onClick="{{ row.onSeeAll }}" style="background:transparent;border:none;color:#007185;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">See all →</button>
+          </div>
+          <div style="display:grid;grid-auto-flow:column;grid-auto-columns:212px;gap:14px;overflow-x:auto;padding-bottom:6px;">
+            <sc-for list="{{ row.cards }}" as="c" hint-placeholder-count="6">
+              <dc-import name="ProductCard" product="{{ c.product }}" qty="{{ c.qty }}" on-add="{{ c.onAdd }}" on-inc="{{ c.onInc }}" on-dec="{{ c.onDec }}" on-open="{{ c.onOpen }}" hint-size="212px,370px"></dc-import>
+            </sc-for>
+          </div>
+        </section>
+      </sc-for>
+    </main>
+  </sc-if>
+
+  <!-- ===================== CATEGORY / SEARCH ===================== -->
+  <sc-if value="{{ isCategory }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Category" style="max-width:1500px;margin:0 auto;padding:14px 18px 40px;">
+      <div style="font-size:13px;color:#565959;margin-bottom:14px;">
+        <span onClick="{{ goHome }}" style="color:#007185;cursor:pointer;">Home</span><span style="margin:0 7px;color:#aaa;">/</span><span style="color:#0f1111;font-weight:600;">{{ catTitle }}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:230px 1fr;gap:20px;align-items:start;">
+        <!-- FILTER RAIL -->
+        <aside style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:16px 16px 8px;position:sticky;top:118px;">
+          <div style="font-size:15px;font-weight:800;margin-bottom:10px;">Department</div>
+          <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:18px;">
+            <sc-for list="{{ filterCats }}" as="f" hint-placeholder-count="8">
+              <button onClick="{{ f.onClick }}" style="text-align:left;background:transparent;border:none;font-family:inherit;font-size:14px;padding:7px 8px;border-radius:6px;cursor:pointer;color:{{ f.color }};font-weight:{{ f.weight }};background:{{ f.bg }};">{{ f.name }}</button>
+            </sc-for>
+          </div>
+          <div style="font-size:15px;font-weight:800;margin-bottom:10px;border-top:1px solid #eee;padding-top:14px;">Sort by</div>
+          <div style="display:flex;flex-direction:column;gap:2px;padding-bottom:8px;">
+            <sc-for list="{{ sortOptions }}" as="s" hint-placeholder-count="4">
+              <button onClick="{{ s.onClick }}" style="text-align:left;background:{{ s.bg }};border:none;font-family:inherit;font-size:14px;padding:7px 8px;border-radius:6px;cursor:pointer;color:{{ s.color }};font-weight:{{ s.weight }};">{{ s.label }}</button>
+            </sc-for>
+          </div>
+        </aside>
+        <!-- RESULTS -->
+        <section>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;">
+            <h1 style="margin:0;font-size:28px;font-weight:800;color:#0f1111;">{{ catTitle }}</h1>
+            <span style="font-size:14px;color:#565959;">{{ catCount }} items</span>
+          </div>
+          <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;">
+              <sc-for list="{{ categoryProducts }}" as="c" hint-placeholder-count="10">
+                <dc-import name="ProductCard" product="{{ c.product }}" qty="{{ c.qty }}" on-add="{{ c.onAdd }}" on-inc="{{ c.onInc }}" on-dec="{{ c.onDec }}" on-open="{{ c.onOpen }}" hint-size="100%,370px"></dc-import>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:60px;text-align:center;color:#565959;">
+              <div style="font-size:40px;margin-bottom:10px;">🔍</div>
+              <div style="font-size:18px;font-weight:700;color:#0f1111;margin-bottom:6px;">No results for “{{ catTitle }}”</div>
+              <div style="font-size:14px;">Try a different search or browse a category above.</div>
+            </div>
+          </sc-if>
+        </section>
+      </div>
+    </main>
+  </sc-if>
+
+  <!-- ===================== PRODUCT DETAIL ===================== -->
+  <sc-if value="{{ isProduct }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Product" style="max-width:1500px;margin:0 auto;padding:14px 18px 40px;">
+      <div style="font-size:13px;color:#565959;margin-bottom:14px;">
+        <span onClick="{{ goHome }}" style="color:#007185;cursor:pointer;">Home</span><span style="margin:0 7px;color:#aaa;">/</span>
+        <span onClick="{{ pOpenCat }}" style="color:#007185;cursor:pointer;">{{ pCategory }}</span><span style="margin:0 7px;color:#aaa;">/</span>
+        <span style="color:#0f1111;font-weight:600;">{{ pName }}</span>
+      </div>
+      <div style="background:#fff;border:1px solid #e7e7e7;border-radius:14px;padding:24px;display:grid;grid-template-columns:72px 360px 1fr 290px;gap:24px;align-items:start;">
+        <!-- thumbs -->
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ pThumbs }}" as="t" hint-placeholder-count="4">
+            <div style="height:78px;border:1.5px solid {{ t.border }};border-radius:8px;background:#f7f8f8;display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;font-size:9px;color:#9aa0a6;text-align:center;padding:4px;">{{ t.label }}</div>
+          </sc-for>
+        </div>
+        <!-- main image -->
+        <div style="position:relative;height:480px;border-radius:10px;background:#f7f8f8;display:flex;align-items:center;justify-content:center;background-image:repeating-linear-gradient(45deg,#f2f3f3 0 12px,#f7f8f8 12px 24px);">
+          {{ pImageEl }}
+          <div style="position:absolute;top:16px;left:16px;display:flex;align-items:center;gap:6px;background:rgba(19,25,33,0.88);color:#fff;font-size:13px;font-weight:700;padding:6px 12px;border-radius:20px;"><span style="width:7px;height:7px;border-radius:50%;background:#46e07f;"></span>{{ pDelivery }} min delivery</div>
+          <sc-if value="{{ pHasDiscount }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;top:16px;right:16px;background:#cc0c39;color:#fff;font-size:14px;font-weight:800;padding:5px 10px;border-radius:6px;">{{ pDiscountStr }}</div></sc-if>
+        </div>
+        <!-- info -->
+        <div>
+          <div style="font-size:13px;font-weight:700;letter-spacing:0.05em;color:#8a8f94;text-transform:uppercase;margin-bottom:4px;">{{ pBrand }}</div>
+          <h1 style="margin:0 0 8px;font-size:26px;font-weight:700;line-height:1.25;color:#0f1111;">{{ pName }}</h1>
+          <div onClick="{{ pOpenCat }}" style="font-size:13px;color:#007185;cursor:pointer;margin-bottom:10px;">Visit the {{ pCategory }} store</div>
+          <div style="display:flex;align-items:center;gap:8px;padding-bottom:14px;border-bottom:1px solid #eee;margin-bottom:14px;">
+            <span style="position:relative;display:inline-block;font-size:17px;letter-spacing:2px;color:#e3e6e6;height:20px;">★★★★★<span style="position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;color:#ffa41c;width:{{ pStarPct }};">★★★★★</span></span>
+            <span style="font-size:14px;color:#007185;font-weight:600;">{{ pRating }}</span>
+            <span style="font-size:14px;color:#007185;">{{ pRatingCount }} ratings</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:6px;">
+            <sc-if value="{{ pHasDiscount }}" hint-placeholder-val="{{ true }}"><span style="color:#cc0c39;font-size:22px;font-weight:600;">{{ pDiscountStr }}</span></sc-if>
+            <div><span style="font-size:14px;vertical-align:top;position:relative;top:4px;">₹</span><span style="font-size:34px;font-weight:700;">{{ pPrice }}</span></div>
+          </div>
+          <div style="font-size:13px;color:#565959;margin-bottom:2px;">M.R.P.: <span style="text-decoration:line-through;">₹{{ pMrp }}</span> &nbsp; <span style="color:#007600;font-weight:600;">You save ₹{{ pSave }}</span></div>
+          <div style="font-size:12px;color:#565959;margin-bottom:16px;">Inclusive of all taxes</div>
+          <p style="font-size:14px;color:#333;line-height:1.5;margin:0 0 18px;">{{ pBrand }} {{ pName }} ({{ pSize }}). Delivered in minutes from your nearest store — fresh, sealed and ready to enjoy.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tbody>
+              <tr><td style="padding:7px 0;color:#565959;width:120px;vertical-align:top;">Brand</td><td style="padding:7px 0;font-weight:700;">{{ pBrand }}</td></tr>
+              <tr><td style="padding:7px 0;color:#565959;vertical-align:top;">Unit</td><td style="padding:7px 0;font-weight:700;">{{ pSize }}</td></tr>
+              <tr><td style="padding:7px 0;color:#565959;vertical-align:top;">Category</td><td style="padding:7px 0;font-weight:700;">{{ pCategory }}</td></tr>
+              <tr><td style="padding:7px 0;color:#565959;vertical-align:top;">Tags</td><td style="padding:7px 0;">
+                <span style="display:inline-flex;flex-wrap:wrap;gap:6px;">
+                  <sc-for list="{{ pTags }}" as="tag" hint-placeholder-count="3"><span style="background:#eef1f3;color:#37475a;font-size:12px;padding:3px 9px;border-radius:12px;">{{ tag }}</span></sc-for>
+                </span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- BUY BOX -->
+        <aside style="border:1px solid #e0e0e0;border-radius:12px;padding:18px;background:#fff;position:sticky;top:118px;">
+          <div style="margin-bottom:6px;"><span style="font-size:13px;vertical-align:top;position:relative;top:3px;">₹</span><span style="font-size:30px;font-weight:700;">{{ pPrice }}</span></div>
+          <div style="font-size:14px;color:#007600;font-weight:700;margin-bottom:2px;">FREE delivery in {{ pDelivery }} min</div>
+          <div style="font-size:13px;color:#565959;margin-bottom:12px;">Delivering to <span style="font-weight:700;color:#0f1111;">Connaught Place</span></div>
+          <div style="font-size:18px;color:#007600;font-weight:700;margin-bottom:14px;">In stock</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+            <span style="font-size:14px;color:#0f1111;">Qty</span>
+            <div style="display:flex;align-items:center;border:1px solid #d5d9d9;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+              <button onClick="{{ decDetail }}" style="width:38px;height:36px;border:none;background:#f0f2f2;font-size:18px;font-weight:700;cursor:pointer;color:#0f1111;">−</button>
+              <span style="width:42px;text-align:center;font-size:15px;font-weight:700;">{{ detailQty }}</span>
+              <button onClick="{{ incDetail }}" style="width:38px;height:36px;border:none;background:#f0f2f2;font-size:18px;font-weight:700;cursor:pointer;color:#0f1111;">+</button>
+            </div>
+          </div>
+          <button onClick="{{ addDetail }}" style="width:100%;height:44px;background:linear-gradient(#f7dfa5,#f0c14b);border:1px solid #c89411;border-radius:24px;font-family:inherit;font-size:15px;font-weight:700;color:#0f1111;cursor:pointer;margin-bottom:10px;" style-hover="background:linear-gradient(#f5d78e,#eeb933);">Add to cart</button>
+          <button onClick="{{ buyNow }}" style="width:100%;height:44px;background:linear-gradient(#ffb84d,#ff9900);border:1px solid #e88a00;border-radius:24px;font-family:inherit;font-size:15px;font-weight:700;color:#0f1111;cursor:pointer;" style-hover="filter:brightness(1.04);">Buy now</button>
+          <div style="font-size:12px;color:#565959;margin-top:14px;line-height:1.5;">Sold and fulfilled by <span style="font-weight:700;">Amazon Picks</span> · Easy returns within 7 days</div>
+        </aside>
+      </div>
+
+      <!-- FREQUENTLY BOUGHT TOGETHER -->
+      <section style="background:#fff;border:1px solid #e7e7e7;border-radius:14px;padding:20px;margin-top:18px;">
+        <h2 style="margin:0 0 14px;font-size:21px;font-weight:800;">Frequently bought together</h2>
+        <div style="display:grid;grid-auto-flow:column;grid-auto-columns:212px;gap:14px;overflow-x:auto;padding-bottom:6px;">
+          <sc-for list="{{ fbtCards }}" as="c" hint-placeholder-count="6">
+            <dc-import name="ProductCard" product="{{ c.product }}" qty="{{ c.qty }}" on-add="{{ c.onAdd }}" on-inc="{{ c.onInc }}" on-dec="{{ c.onDec }}" on-open="{{ c.onOpen }}" hint-size="212px,370px"></dc-import>
+          </sc-for>
+        </div>
+      </section>
+    </main>
+  </sc-if>
+
+  <!-- ===================== CART ===================== -->
+  <sc-if value="{{ isCart }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Cart" style="max-width:1300px;margin:0 auto;padding:18px;">
+      <sc-if value="{{ cartHasItems }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start;">
+          <section style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:22px;">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid #eee;padding-bottom:14px;margin-bottom:6px;">
+              <h1 style="margin:0;font-size:26px;font-weight:800;">Shopping Cart</h1>
+              <span style="font-size:13px;color:#565959;">Price</span>
+            </div>
+            <sc-for list="{{ cartLines }}" as="l" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:110px 1fr auto;gap:16px;padding:18px 0;border-bottom:1px solid #f0f0f0;align-items:start;">
+                <div style="position:relative;height:110px;border-radius:8px;background:#f7f8f8;display:flex;align-items:center;justify-content:center;background-image:repeating-linear-gradient(45deg,#f2f3f3 0 10px,#f7f8f8 10px 20px);">
+                  <span style="font-family:'Courier New',monospace;font-size:10px;color:#9aa0a6;text-align:center;padding:6px;">{{ l.name }}</span>
+                </div>
+                <div>
+                  <div onClick="{{ l.onOpen }}" style="font-size:17px;font-weight:600;color:#0f1111;cursor:pointer;line-height:1.3;" style-hover="color:#c45500;">{{ l.name }}</div>
+                  <div style="font-size:12px;color:#8a8f94;text-transform:uppercase;letter-spacing:0.04em;margin-top:2px;">{{ l.brand }} · {{ l.size }}</div>
+                  <div style="font-size:13px;color:#007600;font-weight:700;margin-top:8px;">In stock · {{ l.delivery }} min delivery</div>
+                  <div style="display:flex;align-items:center;gap:16px;margin-top:12px;">
+                    <div style="display:flex;align-items:center;border:1px solid #d5d9d9;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+                      <button onClick="{{ l.onDec }}" style="width:34px;height:32px;border:none;background:#f0f2f2;font-size:17px;font-weight:700;cursor:pointer;">−</button>
+                      <span style="width:38px;text-align:center;font-size:14px;font-weight:700;">{{ l.qty }}</span>
+                      <button onClick="{{ l.onInc }}" style="width:34px;height:32px;border:none;background:#f0f2f2;font-size:17px;font-weight:700;cursor:pointer;">+</button>
+                    </div>
+                    <button onClick="{{ l.onRemove }}" style="background:none;border:none;color:#007185;font-family:inherit;font-size:13px;cursor:pointer;" style-hover="color:#c45500;text-decoration:underline;">Delete</button>
+                  </div>
+                </div>
+                <div style="font-size:18px;font-weight:700;white-space:nowrap;">₹{{ l.lineTotal }}</div>
+              </div>
+            </sc-for>
+            <div style="text-align:right;font-size:18px;padding-top:16px;">Subtotal ({{ cartItemCount }} items): <span style="font-weight:800;">₹{{ cartSubtotal }}</span></div>
+          </section>
+          <aside style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:20px;position:sticky;top:118px;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#007600;font-weight:700;margin-bottom:12px;"><span style="width:18px;height:18px;border-radius:50%;background:#007600;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;">✓</span>Your order qualifies for FREE express delivery</div>
+            <div style="font-size:19px;margin-bottom:4px;">Subtotal ({{ cartItemCount }} items): <span style="font-weight:800;">₹{{ cartSubtotal }}</span></div>
+            <sc-if value="{{ cartHasSavings }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:#cc0c39;font-weight:700;margin-bottom:14px;">You save ₹{{ cartSavings }} ({{ cartSavingsPct }}%)</div></sc-if>
+            <button onClick="{{ goCheckout }}" style="width:100%;height:44px;background:linear-gradient(#ffb84d,#ff9900);border:1px solid #e88a00;border-radius:24px;font-family:inherit;font-size:15px;font-weight:700;color:#0f1111;cursor:pointer;" style-hover="filter:brightness(1.04);">Proceed to checkout</button>
+            <button onClick="{{ goHome }}" style="width:100%;height:40px;background:none;border:none;color:#007185;font-family:inherit;font-size:13px;cursor:pointer;margin-top:8px;">Continue shopping</button>
+          </aside>
+        </div>
+      </sc-if>
+      <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:60px;text-align:center;">
+          <div style="font-size:54px;margin-bottom:10px;">🛒</div>
+          <div style="font-size:22px;font-weight:800;margin-bottom:6px;">Your Amazon Picks cart is empty</div>
+          <div style="font-size:14px;color:#565959;margin-bottom:20px;">Browse a category, or let Quick Mode build a cart for you in seconds.</div>
+          <div style="display:flex;gap:10px;justify-content:center;">
+            <button onClick="{{ goHome }}" style="height:44px;padding:0 22px;background:linear-gradient(#f7dfa5,#f0c14b);border:1px solid #c89411;border-radius:24px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">Shop now</button>
+            <button onClick="{{ openQuick }}" style="height:44px;padding:0 22px;background:linear-gradient(95deg,#ff9900,#ff7847);border:none;border-radius:24px;font-family:inherit;font-weight:800;font-size:14px;color:#131921;cursor:pointer;">✦ Try Quick Mode</button>
+          </div>
+        </div>
+      </sc-if>
+    </main>
+  </sc-if>
+
+  <!-- ===================== CHECKOUT ===================== -->
+  <sc-if value="{{ isCheckout }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Checkout" style="max-width:1180px;margin:0 auto;padding:18px;">
+      <h1 style="margin:0 0 16px;font-size:26px;font-weight:800;">Checkout <span style="font-size:14px;font-weight:400;color:#565959;">({{ cartItemCount }} items)</span></h1>
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start;">
+        <section style="display:flex;flex-direction:column;gap:14px;">
+          <div style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:20px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="width:24px;height:24px;border-radius:50%;background:#131921;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;">1</span><h2 style="margin:0;font-size:17px;font-weight:800;">Delivery address</h2></div>
+            <div style="font-size:14px;line-height:1.6;color:#0f1111;padding-left:34px;"><span style="font-weight:700;">Aarav Sharma</span><br>Flat 402, Connaught Place, New Delhi 110001<br>Phone: +91 98xxx xxxxx</div>
+          </div>
+          <div style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:20px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><span style="width:24px;height:24px;border-radius:50%;background:#131921;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;">2</span><h2 style="margin:0;font-size:17px;font-weight:800;">Delivery speed</h2></div>
+            <div style="padding-left:34px;display:flex;gap:12px;">
+              <div style="flex:1;border:2px solid #ff9900;background:#fff8ee;border-radius:10px;padding:14px;"><div style="font-size:15px;font-weight:800;color:#0f1111;">⚡ Express · {{ cartEta }} min</div><div style="font-size:13px;color:#007600;font-weight:700;margin-top:4px;">FREE</div></div>
+              <div style="flex:1;border:1px solid #d5d9d9;border-radius:10px;padding:14px;opacity:.7;"><div style="font-size:15px;font-weight:700;">Standard · 2 hrs</div><div style="font-size:13px;color:#565959;margin-top:4px;">FREE</div></div>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:20px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><span style="width:24px;height:24px;border-radius:50%;background:#131921;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;">3</span><h2 style="margin:0;font-size:17px;font-weight:800;">Payment method</h2></div>
+            <div style="padding-left:34px;display:flex;flex-direction:column;gap:10px;">
+              <sc-for list="{{ payMethods }}" as="pm" hint-placeholder-count="3">
+                <button onClick="{{ pm.onClick }}" style="display:flex;align-items:center;gap:12px;text-align:left;border:2px solid {{ pm.border }};background:{{ pm.bg }};border-radius:10px;padding:13px 16px;cursor:pointer;font-family:inherit;">
+                  <span style="width:18px;height:18px;border-radius:50%;border:2px solid {{ pm.dot }};display:flex;align-items:center;justify-content:center;"><span style="width:8px;height:8px;border-radius:50%;background:{{ pm.dotFill }};"></span></span>
+                  <span style="font-size:20px;">{{ pm.icon }}</span>
+                  <span style="font-size:15px;font-weight:700;color:#0f1111;">{{ pm.label }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </section>
+        <aside style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:20px;position:sticky;top:118px;">
+          <button onClick="{{ placeOrder }}" style="width:100%;height:46px;background:linear-gradient(#ffb84d,#ff9900);border:1px solid #e88a00;border-radius:24px;font-family:inherit;font-size:15px;font-weight:800;color:#0f1111;cursor:pointer;margin-bottom:14px;" style-hover="filter:brightness(1.04);">Place your order</button>
+          <div style="font-size:12px;color:#565959;text-align:center;margin-bottom:16px;">By placing your order you agree to Amazon Picks' terms.</div>
+          <h3 style="margin:0 0 12px;font-size:16px;font-weight:800;border-top:1px solid #eee;padding-top:14px;">Order summary</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto;margin-bottom:12px;">
+            <sc-for list="{{ cartLines }}" as="l" hint-placeholder-count="3">
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#333;gap:8px;"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ l.qty }} × {{ l.name }}</span><span style="font-weight:700;white-space:nowrap;">₹{{ l.lineTotal }}</span></div>
+            </sc-for>
+          </div>
+          <div style="border-top:1px solid #eee;padding-top:12px;font-size:14px;display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;color:#565959;"><span>Items</span><span>₹{{ cartSubtotal }}</span></div>
+            <div style="display:flex;justify-content:space-between;color:#565959;"><span>Delivery</span><span style="color:#007600;font-weight:700;">FREE</span></div>
+            <sc-if value="{{ cartHasSavings }}" hint-placeholder-val="{{ true }}"><div style="display:flex;justify-content:space-between;color:#cc0c39;font-weight:700;"><span>Savings</span><span>−₹{{ cartSavings }}</span></div></sc-if>
+            <div style="display:flex;justify-content:space-between;font-size:19px;font-weight:800;color:#b12704;border-top:1px solid #eee;padding-top:10px;margin-top:4px;"><span>Order total</span><span>₹{{ cartSubtotal }}</span></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </sc-if>
+
+  <!-- ===================== SUCCESS ===================== -->
+  <sc-if value="{{ isSuccess }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Order placed" style="max-width:760px;margin:0 auto;padding:40px 18px;">
+      <div style="background:#fff;border:1px solid #e7e7e7;border-radius:16px;padding:44px;text-align:center;">
+        <div style="width:78px;height:78px;border-radius:50%;background:#e7f6ec;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;"><span style="font-size:42px;color:#007600;">✓</span></div>
+        <h1 style="margin:0 0 6px;font-size:28px;font-weight:800;color:#007600;">Order placed, thank you!</h1>
+        <p style="margin:0 0 22px;font-size:15px;color:#565959;">Your order is confirmed and on its way. Confirmation sent to your email.</p>
+        <div style="display:flex;justify-content:center;gap:30px;flex-wrap:wrap;background:#f7f8f8;border-radius:12px;padding:20px;margin-bottom:24px;">
+          <div><div style="font-size:12px;color:#8a8f94;text-transform:uppercase;letter-spacing:0.05em;">Order ID</div><div style="font-size:17px;font-weight:800;">{{ orderId }}</div></div>
+          <div><div style="font-size:12px;color:#8a8f94;text-transform:uppercase;letter-spacing:0.05em;">Arriving in</div><div style="font-size:17px;font-weight:800;color:#007600;">{{ orderEta }} min</div></div>
+          <div><div style="font-size:12px;color:#8a8f94;text-transform:uppercase;letter-spacing:0.05em;">Items</div><div style="font-size:17px;font-weight:800;">{{ orderCount }}</div></div>
+          <div><div style="font-size:12px;color:#8a8f94;text-transform:uppercase;letter-spacing:0.05em;">Total paid</div><div style="font-size:17px;font-weight:800;">₹{{ orderTotal }}</div></div>
+        </div>
+        <button onClick="{{ goHome }}" style="height:46px;padding:0 30px;background:linear-gradient(#f7dfa5,#f0c14b);border:1px solid #c89411;border-radius:24px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;">Continue shopping</button>
+      </div>
+    </main>
+  </sc-if>
+
+  <!-- ===================== QUICK MODE (AI) ===================== -->
+  <sc-if value="{{ quickOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeQuick }}" style="position:fixed;inset:0;z-index:80;background:rgba(15,20,28,0.62);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow:auto;">
+      <div onClick="{{ stop }}" style="width:100%;max-width:940px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.4);position:relative;">
+        <button onClick="{{ closeQuick }}" style="position:absolute;top:16px;right:16px;z-index:3;width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,0.18);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+
+        <!-- HEADER -->
+        <div style="background:linear-gradient(120deg,#131921 0%,#232f3e 60%,#37475a 100%);color:#fff;padding:24px 30px;display:flex;align-items:center;gap:14px;">
+          <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#ff9900,#ff7847);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(255,140,40,0.5);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#131921"><path d="M12 2l1.8 6.4L20 10l-6.2 1.6L12 18l-1.8-6.4L4 10l6.2-1.6z"></path></svg>
+          </div>
+          <div>
+            <div style="font-size:20px;font-weight:800;letter-spacing:-0.3px;">Quick Mode <span style="font-size:11px;font-weight:700;background:rgba(255,153,0,0.2);color:#ffce8a;padding:2px 7px;border-radius:5px;vertical-align:middle;">AI · BEDROCK</span></div>
+            <div style="font-size:13px;color:#c8d0d8;">From a single sentence to a ready-to-checkout cart.</div>
+          </div>
+        </div>
+
+        <!-- INPUT STEP -->
+        <sc-if value="{{ quickInput }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:26px 30px 30px;">
+            <label style="font-size:14px;font-weight:700;color:#0f1111;display:block;margin-bottom:8px;">What do you need?</label>
+            <textarea value="{{ qIntent }}" onInput="{{ onQIntent }}" placeholder="e.g. movie night for 4 people, medium budget" style="width:100%;min-height:74px;resize:none;border:2px solid #e0e0e0;border-radius:12px;padding:14px 16px;font-size:16px;font-family:inherit;outline:none;box-sizing:border-box;color:#0f1111;" style-focus="border-color:#ff9900;"></textarea>
+
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 22px;">
+              <sc-for list="{{ quickChips }}" as="chip" hint-placeholder-count="3">
+                <button onClick="{{ chip.onClick }}" style="background:#f3f4f4;border:1px solid #e0e0e0;color:#37475a;font-family:inherit;font-size:13px;padding:7px 13px;border-radius:18px;cursor:pointer;" style-hover="background:#fff3e0;border-color:#ffb84d;">{{ chip.label }}</button>
+              </sc-for>
+            </div>
+
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;padding:16px 0;border-top:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;margin-bottom:22px;">
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#8a8f94;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:7px;">People</div>
+                <div style="display:flex;align-items:center;border:1px solid #d5d9d9;border-radius:10px;overflow:hidden;width:fit-content;">
+                  <button onClick="{{ decGroup }}" style="width:36px;height:36px;border:none;background:#f0f2f2;font-size:18px;font-weight:700;cursor:pointer;">−</button>
+                  <span style="width:42px;text-align:center;font-size:16px;font-weight:800;">{{ qGroup }}</span>
+                  <button onClick="{{ incGroup }}" style="width:36px;height:36px;border:none;background:#f0f2f2;font-size:18px;font-weight:700;cursor:pointer;">+</button>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:12px;font-weight:700;color:#8a8f94;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:7px;">Zone</div>
+                <div style="display:inline-flex;align-items:center;gap:6px;background:#eef1f3;padding:8px 12px;border-radius:10px;font-size:13px;font-weight:700;color:#37475a;">📍 Connaught Place · 110001</div>
+              </div>
+            </div>
+
+            <button onClick="{{ runQuick }}" style="width:100%;height:52px;border:none;border-radius:26px;cursor:pointer;background:linear-gradient(95deg,#ff9900,#ff7847);color:#131921;font-family:inherit;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 18px rgba(255,140,40,0.4);" style-hover="filter:brightness(1.05);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#131921"><path d="M12 2l1.8 6.4L20 10l-6.2 1.6L12 18l-1.8-6.4L4 10l6.2-1.6z"></path></svg>Build my carts
+            </button>
+            <div style="display:flex;justify-content:center;gap:18px;margin-top:18px;font-size:12px;color:#8a8f94;">
+              <span>① Decompose intent</span><span>②  Hybrid search</span><span>③ One ready cart</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- THINKING STEP -->
+        <sc-if value="{{ quickThinking }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:46px 30px 50px;text-align:center;">
+            <div style="width:64px;height:64px;margin:0 auto 22px;border-radius:50%;border:4px solid #f0e0c8;border-top-color:#ff9900;animation:apSpin 0.9s linear infinite;"></div>
+            <div style="font-size:19px;font-weight:800;margin-bottom:4px;">Building your carts…</div>
+            <div style="font-size:13px;color:#565959;margin-bottom:26px;">Claude is turning “{{ qIntent }}” into a shopping plan.</div>
+            <div style="max-width:340px;margin:0 auto;display:flex;flex-direction:column;gap:14px;text-align:left;">
+              <sc-for list="{{ thinkStages }}" as="st" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:12px;opacity:{{ st.opacity }};transition:opacity .3s;">
+                  <span style="width:24px;height:24px;border-radius:50%;background:{{ st.dotBg }};color:{{ st.dotColor }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;border:{{ st.border }};">{{ st.mark }}</span>
+                  <span style="font-size:14px;font-weight:{{ st.weight }};color:{{ st.textColor }};">{{ st.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- RESULTS STEP -->
+        <sc-if value="{{ quickResults }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <!-- vibe banner -->
+            <div style="background:{{ vGrad }};color:#fff;padding:20px 30px;display:flex;align-items:center;gap:16px;">
+              <div style="font-size:40px;line-height:1;">{{ vEmoji }}</div>
+              <div style="flex:1;">
+                <div style="font-size:22px;font-weight:800;">{{ vName }}</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.85);">Your cart is ready — adjust anything before checkout.</div>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end;max-width:360px;">
+                <sc-for list="{{ qListChips }}" as="c" hint-placeholder-count="4">
+                  <span style="background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.3);font-size:12px;font-weight:700;padding:5px 10px;border-radius:14px;white-space:nowrap;">{{ c.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+            <!-- editable cart -->
+            <div style="padding:22px 30px 6px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                <div style="font-size:16px;font-weight:800;">Your cart <span style="font-size:13px;font-weight:400;color:#565959;">· {{ qCartCount }} items · {{ qCartEta }} min delivery</span></div>
+              </div>
+              <sc-if value="{{ qCartHasItems }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+                  <sc-for list="{{ qCartLines }}" as="l" hint-placeholder-count="4">
+                    <div style="display:grid;grid-template-columns:52px 1fr auto auto;gap:14px;align-items:center;padding:10px 12px;border:1px solid #ededed;border-radius:10px;">
+                      <div style="width:52px;height:52px;border-radius:8px;background:{{ l.tintBg }};display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;box-sizing:border-box;"><span style="font-size:9px;font-weight:800;color:{{ l.tintFg }};line-height:1.1;">{{ l.name }}</span></div>
+                      <div style="min-width:0;">
+                        <div style="font-size:14px;font-weight:700;color:#0f1111;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ l.name }}</div>
+                        <div style="font-size:11.5px;color:#8a8f94;text-transform:uppercase;letter-spacing:0.04em;">{{ l.brand }} · {{ l.size }}</div>
+                      </div>
+                      <div style="display:flex;align-items:center;border:1px solid #d5d9d9;border-radius:8px;overflow:hidden;">
+                        <button onClick="{{ l.onDec }}" style="width:32px;height:30px;border:none;background:#f0f2f2;font-size:16px;font-weight:700;cursor:pointer;">−</button>
+                        <span style="width:34px;text-align:center;font-size:14px;font-weight:700;">{{ l.qty }}</span>
+                        <button onClick="{{ l.onInc }}" style="width:32px;height:30px;border:none;background:#f0f2f2;font-size:16px;font-weight:700;cursor:pointer;">+</button>
+                      </div>
+                      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+                        <span style="font-size:15px;font-weight:800;white-space:nowrap;">₹{{ l.lineTotal }}</span>
+                        <button onClick="{{ l.onRemove }}" style="background:none;border:none;color:#8a8f94;font-family:inherit;font-size:11px;cursor:pointer;" style-hover="color:#cc0c39;text-decoration:underline;">Remove</button>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ qCartEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;color:#565959;font-size:14px;padding:24px;border:1px dashed #d5d9d9;border-radius:10px;margin-bottom:16px;">Your cart is empty — add an item below.</div>
+              </sc-if>
+
+              <!-- add any item -->
+              <div style="position:relative;margin-bottom:6px;">
+                <input value="{{ quickAddQuery }}" onInput="{{ onQuickAddInput }}" placeholder="➕ Add any item — search milk, chips, cola…" style="width:100%;height:44px;border:1.5px solid #e0e0e0;border-radius:10px;padding:0 14px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;color:#0f1111;" style-focus="border-color:#ff9900;">
+                <sc-if value="{{ quickHasAddResults }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;left:0;right:0;top:48px;z-index:5;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.12);overflow:hidden;max-height:240px;overflow-y:auto;">
+                    <sc-for list="{{ quickAddResults }}" as="r" hint-placeholder-count="4">
+                      <button onClick="{{ r.onAdd }}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;background:#fff;padding:9px 12px;cursor:pointer;font-family:inherit;border-bottom:1px solid #f3f3f3;" style-hover="background:#fafafa;">
+                        <span style="width:38px;height:38px;flex-shrink:0;border-radius:6px;background:{{ r.tintBg }};display:flex;align-items:center;justify-content:center;text-align:center;padding:3px;box-sizing:border-box;font-size:8px;font-weight:800;color:{{ r.tintFg }};line-height:1.05;">{{ r.name }}</span>
+                        <span style="flex:1;min-width:0;"><span style="display:block;font-size:13px;font-weight:700;color:#0f1111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.name }}</span><span style="font-size:11px;color:#8a8f94;">{{ r.brand }}</span></span>
+                        <span style="font-size:13px;font-weight:800;color:#0f1111;white-space:nowrap;">₹{{ r.price }}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+
+            <!-- checkout bar -->
+            <div style="padding:14px 30px 22px;border-top:1px solid #f0f0f0;margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+              <button onClick="{{ backToInput }}" style="background:none;border:none;color:#007185;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">← Edit request</button>
+              <div style="display:flex;align-items:center;gap:18px;">
+                <div style="text-align:right;"><div style="font-size:12px;color:#565959;">Subtotal</div><div style="font-size:22px;font-weight:800;">₹{{ qCartSubtotal }}</div></div>
+                <button onClick="{{ quickCheckout }}" style="height:48px;padding:0 28px;border:none;border-radius:24px;cursor:pointer;background:linear-gradient(#ffb84d,#ff9900);color:#0f1111;font-family:inherit;font-weight:800;font-size:15px;" style-hover="filter:brightness(1.04);">Proceed to checkout →</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== CONVERSATIONAL MODE ===================== -->
+  <sc-if value="{{ convOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:90;background:rgba(15,20,28,0.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;animation:apFade 0.25s ease;">
+      <div style="width:100%;max-width:1080px;height:min(88vh,760px);background:#f4f6f7;border-radius:20px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.5);display:flex;flex-direction:column;animation:apZoom 0.32s cubic-bezier(.2,.8,.25,1);">
+        <!-- header -->
+        <div style="background:linear-gradient(120deg,#131921 0%,#232f3e 60%,#37475a 100%);color:#fff;padding:16px 22px;display:flex;align-items:center;gap:13px;flex-shrink:0;">
+          <div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#ff9900,#ff7847);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(255,140,40,0.5);flex-shrink:0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#131921"><path d="M12 2l1.8 6.4L20 10l-6.2 1.6L12 18l-1.8-6.4L4 10l6.2-1.6z"></path></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:18px;font-weight:800;letter-spacing:-0.3px;">Amazon Now <span style="font-size:11px;font-weight:700;background:rgba(255,153,0,0.2);color:#ffce8a;padding:2px 7px;border-radius:5px;vertical-align:middle;">CONVERSATIONAL · AI</span></div>
+            <div style="font-size:12.5px;color:#c8d0d8;">Chat your cart together — adjust and checkout in seconds.</div>
+          </div>
+          <button onClick="{{ resetConv }}" style="background:rgba(255,255,255,0.12);border:none;color:#fff;font-family:inherit;font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;cursor:pointer;" style-hover="background:rgba(255,255,255,0.22);">↺ New chat</button>
+          <button onClick="{{ closeConv }}" style="width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,0.14);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;" style-hover="background:rgba(255,255,255,0.26);">✕</button>
+        </div>
+
+        <!-- CHAT STEP -->
+        <sc-if value="{{ convChat }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;display:grid;grid-template-columns:1.4fr 1fr;min-height:0;">
+            <!-- chat column -->
+            <div style="display:flex;flex-direction:column;min-height:0;border-right:1px solid #e3e6e8;background:#fff;">
+              <div ref="{{ chatRef }}" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;">
+                <sc-for list="{{ convMsgs }}" as="m" hint-placeholder-count="2">
+                  <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ false }}">
+                    <div style="align-self:flex-end;max-width:78%;background:linear-gradient(120deg,#ff9900,#ff7847);color:#131921;font-size:14px;font-weight:600;line-height:1.45;padding:11px 15px;border-radius:16px 16px 4px 16px;animation:apMsgIn 0.25s ease;">{{ m.text }}</div>
+                  </sc-if>
+                  <sc-if value="{{ m.isBot }}" hint-placeholder-val="{{ true }}">
+                    <div style="align-self:flex-start;max-width:82%;display:flex;gap:9px;animation:apMsgIn 0.25s ease;">
+                      <div style="width:28px;height:28px;border-radius:8px;background:#131921;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#ff9900"><path d="M12 2l1.8 6.4L20 10l-6.2 1.6L12 18l-1.8-6.4L4 10l6.2-1.6z"></path></svg></div>
+                      <div style="background:#f0f2f4;color:#0f1111;font-size:14px;line-height:1.5;padding:11px 15px;border-radius:4px 16px 16px 16px;">{{ m.text }}</div>
+                    </div>
+                  </sc-if>
+                </sc-for>
+                <sc-if value="{{ convBusy }}" hint-placeholder-val="{{ false }}">
+                  <div style="align-self:flex-start;display:flex;gap:9px;">
+                    <div style="width:28px;height:28px;border-radius:8px;background:#131921;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#ff9900"><path d="M12 2l1.8 6.4L20 10l-6.2 1.6L12 18l-1.8-6.4L4 10l6.2-1.6z"></path></svg></div>
+                    <div style="background:#f0f2f4;padding:14px 16px;border-radius:4px 16px 16px 16px;display:flex;gap:5px;align-items:center;">
+                      <span style="width:7px;height:7px;border-radius:50%;background:#8a8f94;animation:apBlink 1s infinite;"></span>
+                      <span style="width:7px;height:7px;border-radius:50%;background:#8a8f94;animation:apBlink 1s infinite 0.2s;"></span>
+                      <span style="width:7px;height:7px;border-radius:50%;background:#8a8f94;animation:apBlink 1s infinite 0.4s;"></span>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+              <!-- composer -->
+              <div style="padding:12px 16px 16px;border-top:1px solid #eee;background:#fff;">
+                <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;">
+                  <sc-for list="{{ convChips }}" as="chip" hint-placeholder-count="3">
+                    <button onClick="{{ chip.onClick }}" style="background:#f3f4f4;border:1px solid #e0e0e0;color:#37475a;font-family:inherit;font-size:12px;padding:6px 11px;border-radius:16px;cursor:pointer;" style-hover="background:#fff3e0;border-color:#ffb84d;">{{ chip.label }}</button>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-end;">
+                  <textarea value="{{ convInputVal }}" onInput="{{ onConvInput }}" onKeyDown="{{ onConvKey }}" placeholder="Tell me what you need…" style="flex:1;min-height:46px;max-height:120px;resize:none;border:1.5px solid #e0e0e0;border-radius:12px;padding:12px 14px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;color:#0f1111;line-height:1.4;" style-focus="border-color:#ff9900;"></textarea>
+                  <button onClick="{{ sendConv }}" style="width:46px;height:46px;border:none;border-radius:12px;cursor:pointer;background:linear-gradient(95deg,#ff9900,#ff7847);display:flex;align-items:center;justify-content:center;flex-shrink:0;" style-hover="filter:brightness(1.05);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#131921" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+                </div>
+              </div>
+            </div>
+            <!-- live cart column -->
+            <div style="display:flex;flex-direction:column;min-height:0;background:#f7f8f8;">
+              <div style="padding:16px 18px 10px;flex-shrink:0;">
+                <div style="font-size:15px;font-weight:800;color:#0f1111;">Your cart</div>
+                <div style="font-size:12px;color:#565959;">{{ convCount }} items · {{ convEta }} min delivery</div>
+              </div>
+              <div style="flex:1;overflow-y:auto;padding:0 14px;display:flex;flex-direction:column;gap:9px;">
+                <sc-if value="{{ convCartEmpty }}" hint-placeholder-val="{{ true }}">
+                  <div style="text-align:center;color:#8a8f94;font-size:13px;padding:30px 16px;line-height:1.7;">🛒<br>Items you ask for will appear here.</div>
+                </sc-if>
+                <sc-for list="{{ convLines }}" as="l" hint-placeholder-count="0">
+                  <div style="display:grid;grid-template-columns:46px 1fr;gap:10px;align-items:center;background:#fff;border:1px solid #ececec;border-radius:10px;padding:9px;">
+                    <div style="width:46px;height:46px;border-radius:7px;background:{{ l.tintBg }};display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;box-sizing:border-box;"><span style="font-size:8px;font-weight:800;color:{{ l.tintFg }};line-height:1.05;">{{ l.name }}</span></div>
+                    <div style="min-width:0;">
+                      <div style="font-size:12.5px;font-weight:700;color:#0f1111;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ l.name }}</div>
+                      <div style="font-size:13px;font-weight:800;color:#0f1111;margin-top:2px;">₹{{ l.lineTotal }}</div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+                        <div style="display:flex;align-items:center;border:1px solid #d5d9d9;border-radius:7px;overflow:hidden;">
+                          <button onClick="{{ l.onDec }}" style="width:26px;height:24px;border:none;background:#f0f2f2;font-size:14px;font-weight:700;cursor:pointer;">−</button>
+                          <span style="width:26px;text-align:center;font-size:12px;font-weight:700;">{{ l.qty }}</span>
+                          <button onClick="{{ l.onInc }}" style="width:26px;height:24px;border:none;background:#f0f2f2;font-size:14px;font-weight:700;cursor:pointer;">+</button>
+                        </div>
+                        <button onClick="{{ l.onRemove }}" style="background:none;border:none;color:#8a8f94;font-family:inherit;font-size:11px;cursor:pointer;" style-hover="color:#cc0c39;">Remove</button>
+                      </div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:14px;border-top:1px solid #e3e6e8;flex-shrink:0;background:#f7f8f8;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;"><span style="font-size:13px;color:#565959;">Subtotal</span><span style="font-size:20px;font-weight:800;">₹{{ convSubtotal }}</span></div>
+                <button onClick="{{ convGoCheckout }}" style="width:100%;height:46px;border:none;border-radius:23px;cursor:pointer;background:linear-gradient(#ffb84d,#ff9900);color:#0f1111;font-family:inherit;font-weight:800;font-size:15px;" style-hover="filter:brightness(1.04);">Checkout · ₹{{ convSubtotal }}</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- CONV CHECKOUT STEP -->
+        <sc-if value="{{ convCheckoutStep }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;overflow-y:auto;padding:24px;display:flex;justify-content:center;">
+            <div style="width:100%;max-width:560px;">
+              <button onClick="{{ convBackToChat }}" style="background:none;border:none;color:#007185;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:14px;">← Back to chat</button>
+              <div style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:18px;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;"><span style="width:22px;height:22px;border-radius:50%;background:#131921;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;">1</span><span style="font-size:15px;font-weight:800;">Deliver to</span></div>
+                <div style="font-size:13.5px;line-height:1.5;color:#0f1111;padding-left:31px;"><span style="font-weight:700;">Aarav Sharma</span> · ⚡ Express in {{ convEta }} min FREE<br>Flat 402, Connaught Place, New Delhi 110001</div>
+              </div>
+              <div style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:18px;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;"><span style="width:22px;height:22px;border-radius:50%;background:#131921;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;">2</span><span style="font-size:15px;font-weight:800;">Payment method</span></div>
+                <div style="display:flex;flex-direction:column;gap:9px;">
+                  <sc-for list="{{ convPayMethods }}" as="pm" hint-placeholder-count="3">
+                    <button onClick="{{ pm.onClick }}" style="display:flex;align-items:center;gap:11px;text-align:left;border:2px solid {{ pm.border }};background:{{ pm.bg }};border-radius:10px;padding:12px 14px;cursor:pointer;font-family:inherit;">
+                      <span style="width:17px;height:17px;border-radius:50%;border:2px solid {{ pm.dot }};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="width:8px;height:8px;border-radius:50%;background:{{ pm.dotFill }};"></span></span>
+                      <span style="font-size:18px;">{{ pm.icon }}</span>
+                      <span style="font-size:14px;font-weight:700;color:#0f1111;">{{ pm.label }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #e7e7e7;border-radius:12px;padding:18px;">
+                <div style="font-size:15px;font-weight:800;margin-bottom:12px;">Order summary</div>
+                <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px;max-height:180px;overflow:auto;">
+                  <sc-for list="{{ convLines }}" as="l" hint-placeholder-count="2">
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;color:#333;"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ l.qty }} × {{ l.name }}</span><span style="font-weight:700;white-space:nowrap;">₹{{ l.lineTotal }}</span></div>
+                  </sc-for>
+                </div>
+                <div style="border-top:1px solid #eee;padding-top:10px;display:flex;flex-direction:column;gap:6px;font-size:13.5px;">
+                  <div style="display:flex;justify-content:space-between;color:#565959;"><span>Items ({{ convCount }})</span><span>₹{{ convSubtotal }}</span></div>
+                  <div style="display:flex;justify-content:space-between;color:#565959;"><span>Delivery</span><span style="color:#007600;font-weight:700;">FREE</span></div>
+                  <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;color:#b12704;border-top:1px solid #eee;padding-top:9px;margin-top:3px;"><span>Total</span><span>₹{{ convSubtotal }}</span></div>
+                </div>
+                <button onClick="{{ convPayNow }}" style="width:100%;height:50px;margin-top:16px;border:none;border-radius:25px;cursor:pointer;background:linear-gradient(#ffb84d,#ff9900);color:#0f1111;font-family:inherit;font-weight:800;font-size:16px;" style-hover="filter:brightness(1.04);">Pay ₹{{ convSubtotal }} via {{ convPayLabel }}</button>
+                <div style="font-size:11.5px;color:#8a8f94;text-align:center;margin-top:10px;">🔒 Secured by Amazon Now · 100% safe payments</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- CONV PAYING STEP -->
+        <sc-if value="{{ convPaying }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;">
+            <div style="width:70px;height:70px;border-radius:50%;border:5px solid #f0e0c8;border-top-color:#ff9900;animation:apSpin 0.9s linear infinite;margin-bottom:22px;"></div>
+            <div style="font-size:20px;font-weight:800;margin-bottom:6px;">Processing payment…</div>
+            <div style="font-size:14px;color:#565959;">Securely confirming with your bank. Hang tight.</div>
+          </div>
+        </sc-if>
+
+        <!-- CONV DONE STEP -->
+        <sc-if value="{{ convDone }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px;text-align:center;overflow-y:auto;">
+            <div style="width:74px;height:74px;border-radius:50%;background:#e7f6ec;display:flex;align-items:center;justify-content:center;margin-bottom:16px;animation:apZoom 0.4s ease;"><span style="font-size:40px;color:#007600;">✓</span></div>
+            <h2 style="margin:0 0 6px;font-size:24px;font-weight:800;color:#007600;">Payment successful!</h2>
+            <p style="margin:0 0 20px;font-size:14px;color:#565959;">Your order is confirmed and on its way.</p>
+            <div style="display:flex;gap:26px;flex-wrap:wrap;justify-content:center;background:#f7f8f8;border-radius:12px;padding:18px 24px;margin-bottom:22px;">
+              <div><div style="font-size:11px;color:#8a8f94;text-transform:uppercase;letter-spacing:0.05em;">Order ID</div><div style="font-size:16px;font-weight:800;">{{ convOrderId }}</div></div>
+              <div><div style="font-size:11px;color:#8a8f94;text-transform:uppercase;letter-spacing:0.05em;">Arriving in</div><div style="font-size:16px;font-weight:800;color:#007600;">{{ convOrderEta }} min</div></div>
+              <div><div style="font-size:11px;color:#8a8f94;text-transform:uppercase;letter-spacing:0.05em;">Items</div><div style="font-size:16px;font-weight:800;">{{ convOrderCount }}</div></div>
+              <div><div style="font-size:11px;color:#8a8f94;text-transform:uppercase;letter-spacing:0.05em;">Paid</div><div style="font-size:16px;font-weight:800;">₹{{ convOrderTotal }}</div></div>
+            </div>
+            <button onClick="{{ convFinish }}" style="height:46px;padding:0 28px;background:linear-gradient(#f7dfa5,#f0c14b);border:1px solid #c89411;border-radius:24px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;">Continue shopping</button>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:120;background:#0f1111;color:#fff;font-size:14px;font-weight:600;padding:13px 22px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.3);animation:apToast 2.4s ease forwards;display:flex;align-items:center;gap:10px;">
+      <span style="width:18px;height:18px;border-radius:50%;background:#46e07f;color:#0f1111;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;">✓</span>{{ toast }}
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'home', categoryName: 'Cold Drinks & Juices', productId: null,
+    searchValue: '', activeSearch: '', heroValue: '', sortBy: 'relevance',
+    cart: {}, toast: '', detailQty: 1, payMethod: 'upi', order: null,
+    quickOpen: false, quickStep: 'input', qIntent: '', qGroup: 4,
+    qVibe: 'default', qList: [], qCart: {}, quickAddQuery: '', thinkingStage: 0,
+    // conversational mode
+    convOpen: false, convStep: 'chat', convMsgs: [], convInput: '',
+    convCart: {}, convBusy: false, convPay: 'upi', convOrder: null,
+    // predictive mode
+    orderHistory: [], predRemoved: [], predSnooze: {}, predSkip: [],
+  };
+
+  componentDidMount() {
+    try { const s = JSON.parse(localStorage.getItem('ap_cart_v1') || '{}'); if (s && typeof s === 'object') this.setState({ cart: s }); } catch (e) {}
+    // order history (seed once for the predictive demo)
+    let hist;
+    try { hist = JSON.parse(localStorage.getItem('ap_history_v1') || 'null'); } catch (e) { hist = null; }
+    if (!Array.isArray(hist) || !hist.length) { hist = seedHistory(); try { localStorage.setItem('ap_history_v1', JSON.stringify(hist)); } catch (e) {} }
+    let removed = []; try { removed = JSON.parse(localStorage.getItem('ap_predremoved_v1') || '[]'); } catch (e) {}
+    let snooze = {}; try { snooze = JSON.parse(localStorage.getItem('ap_predsnooze_v1') || '{}'); } catch (e) {}
+    this.setState({ orderHistory: hist, predRemoved: Array.isArray(removed) ? removed : [], predSnooze: snooze && typeof snooze === 'object' ? snooze : {} });
+    this.catalog = CATALOG;
+  }
+
+  chatRef = React.createRef();
+  componentDidUpdate() {
+    try {
+      if (this.state.convOpen && this.state.convStep === 'chat') {
+        const el = this.chatRef && this.chatRef.current;
+        if (el) el.scrollTop = el.scrollHeight;
+      }
+    } catch (e) {}
+  }
+
+  // ---- cart helpers ----
+  persist(cart) { try { localStorage.setItem('ap_cart_v1', JSON.stringify(cart)); } catch (e) {} }
+  setCart(cart) { this.persist(cart); this.setState({ cart }); }
+  addToCart(id, n) {
+    const cart = { ...this.state.cart }; cart[id] = (cart[id] || 0) + (n || 1);
+    if (cart[id] <= 0) delete cart[id];
+    this.setCart(cart);
+    const p = CATALOG.find(x => x.id === id);
+    if (n === undefined || n > 0) this.flash('Added ' + (p ? p.name : 'item') + ' to cart');
+  }
+  inc(id) { const c = { ...this.state.cart }; c[id] = (c[id] || 0) + 1; this.setCart(c); }
+  dec(id) { const c = { ...this.state.cart }; c[id] = (c[id] || 0) - 1; if (c[id] <= 0) delete c[id]; this.setCart(c); }
+  flash(msg) { this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: '' }), 2400); }
+  cartCount() { return Object.values(this.state.cart).reduce((a, b) => a + b, 0); }
+  removeLine(id) { const c = { ...this.state.cart }; delete c[id]; this.setCart(c); }
+  lines() { return Object.keys(this.state.cart).map(id => { const p = CATALOG.find(x => x.id === id); return p ? { p, id, qty: this.state.cart[id] } : null; }).filter(Boolean); }
+  placeOrder() {
+    const lns = this.lines();
+    const total = lns.reduce((a, l) => a + l.p.price * l.qty, 0);
+    const count = lns.reduce((a, l) => a + l.qty, 0);
+    const eta = lns.length ? Math.max(...lns.map(l => l.p.deliveryMin)) : 12;
+    const order = { id: 'AP' + Date.now().toString().slice(-8), total, count, eta };
+    this.recordOrder(lns);
+    this.setCart({});
+    this.setState({ order, screen: 'success' });
+    window.scrollTo({ top: 0 });
+  }
+  recordOrder(lns) {
+    const now = Date.now();
+    const add = (lns || []).filter(l => RECURRING[l.id]).map(l => ({ id: l.id, ts: now }));
+    if (!add.length) return;
+    const hist = [...this.state.orderHistory, ...add];
+    try { localStorage.setItem('ap_history_v1', JSON.stringify(hist)); } catch (e) {}
+    this.setState({ orderHistory: hist });
+  }
+
+  // ---- Quick Mode (AI) ----
+  openQuickMode(prefill) { this.setState({ quickOpen: true, quickStep: 'input', qIntent: (prefill && prefill.trim()) || this.state.qIntent || '', thinkingStage: 0 }); window.scrollTo({ top: 0 }); }
+  closeQuick() { this.setState({ quickOpen: false }); }
+  delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+  extractJSON(s) { if (!s) return '{}'; const a = s.indexOf('{'), b = s.lastIndexOf('}'); return (a >= 0 && b > a) ? s.slice(a, b + 1) : s; }
+
+  retrieve(query) {
+    const words = String(query).toLowerCase().split(/\s+/).filter(Boolean);
+    return CATALOG.map(p => {
+      const hay = (p.name + ' ' + p.brand + ' ' + p.tags.join(' ')).toLowerCase();
+      let score = 0;
+      words.forEach(w => { if (hay.includes(w)) score += 1; if (p.tags.includes(w)) score += 1; });
+      return { p, score };
+    }).filter(x => x.score > 0).sort((a, b) => b.score - a.score || b.p.rating - a.p.rating);
+  }
+
+  buildCarts(list) {
+    const tiers = ['Essentials', 'Standard', 'Premium'];
+    return tiers.map(tier => {
+      const picks = [];
+      (list || []).forEach(it => {
+        const cands = this.retrieve(it.query);
+        if (!cands.length) return;
+        let ch;
+        if (tier === 'Essentials') ch = [...cands].sort((a, b) => a.p.price - b.p.price)[0];
+        else if (tier === 'Premium') ch = [...cands].sort((a, b) => b.p.rating - a.p.rating || b.p.price - a.p.price)[0];
+        else ch = cands[0];
+        if (ch) picks.push({ p: ch.p, qty: Math.max(1, it.quantity || 1) });
+      });
+      const merged = {};
+      picks.forEach(i => { if (merged[i.p.id]) merged[i.p.id].qty += i.qty; else merged[i.p.id] = { p: i.p, qty: i.qty }; });
+      const items = Object.values(merged);
+      const total = items.reduce((a, i) => a + i.p.price * i.qty, 0);
+      const count = items.reduce((a, i) => a + i.qty, 0);
+      const eta = items.length ? Math.max(...items.map(i => i.p.deliveryMin)) : 12;
+      return { tier, items, total, count, eta };
+    });
+  }
+
+  localDecompose(t) {
+    const s = String(t).toLowerCase();
+    const has = (...ks) => ks.some(k => s.includes(k));
+    const m = s.match(/(\d+)/); const n = m ? Math.max(1, parseInt(m[1])) : this.state.qGroup;
+    if (has('movie', 'party', 'game night', 'match', 'celebrat', 'friends', 'binge', 'birthday'))
+      return { vibe_category: 'party', shopping_list: [{ query: 'cola soft drink', quantity: Math.max(2, n) }, { query: 'potato chips', quantity: Math.max(2, Math.ceil(n * 0.8)) }, { query: 'popcorn', quantity: 2 }, { query: 'chocolate', quantity: 2 }] };
+    if (has('breakfast', 'morning'))
+      return { vibe_category: 'breakfast', shopping_list: [{ query: 'milk', quantity: 1 }, { query: 'bread', quantity: 1 }, { query: 'eggs', quantity: 1 }, { query: 'corn flakes cereal', quantity: 1 }] };
+    if (has('healthy', 'detox', 'fresh juice', 'fruit'))
+      return { vibe_category: 'healthy', shopping_list: [{ query: 'orange juice', quantity: 1 }, { query: 'mixed fruit juice', quantity: 1 }, { query: 'water', quantity: 2 }] };
+    if (has('hydrat', 'summer', 'hot day', 'thirsty', 'water'))
+      return { vibe_category: 'hydration', shopping_list: [{ query: 'water', quantity: Math.max(2, n) }, { query: 'soft drink', quantity: n }, { query: 'juice', quantity: 2 }] };
+    if (has('restock', 'weekly', 'grocery', 'household', 'family'))
+      return { vibe_category: 'restock', shopping_list: [{ query: 'milk', quantity: 2 }, { query: 'bread', quantity: 1 }, { query: 'eggs', quantity: 1 }, { query: 'butter', quantity: 1 }, { query: 'noodles', quantity: 1 }] };
+    return { vibe_category: 'snack', shopping_list: [{ query: 'chips snacks', quantity: 2 }, { query: 'cold drink', quantity: 2 }, { query: 'chocolate', quantity: 1 }] };
+  }
+
+  async runQuick() {
+    const intent = this.state.qIntent.trim();
+    if (!intent) { this.flash('Tell us what you need first'); return; }
+    this.setState({ quickStep: 'thinking', thinkingStage: 0 });
+    [600, 1150, 1650].forEach((ms, i) => setTimeout(() => { if (this.state.quickStep === 'thinking') this.setState({ thinkingStage: i + 1 }); }, ms));
+    const work = (async () => {
+      let parsed = null;
+      try {
+        if (window.claude && window.claude.complete) {
+          const prompt = 'You are a shopping-intent decomposition engine for a quick-commerce grocery app. '
+            + 'Given a raw intent plus groupSize and budgetTier, respond with STRICT minified JSON only (no markdown, no prose): '
+            + '{"vibe_category":"<one word: party|movie|healthy|breakfast|comfort|hydration|restock|celebration|snack>","shopping_list":[{"query":"<2-4 word generic product search>","quantity":<integer>}]}. '
+            + 'Decompose into 3-6 grocery queries, scale quantities for groupSize people, use generic queries (e.g. "cola soft drink","potato chips","popcorn","chocolate","milk","bread") not brand names.\n\n'
+            + 'intent: "' + intent + '"\ngroupSize: ' + this.state.qGroup + '\nbudgetTier: standard\nzone: Connaught Place 110001';
+          const raw = await window.claude.complete({ messages: [{ role: 'user', content: prompt }] });
+          parsed = JSON.parse(this.extractJSON(raw));
+        }
+      } catch (e) { parsed = null; }
+      if (!parsed || !Array.isArray(parsed.shopping_list) || !parsed.shopping_list.length) parsed = this.localDecompose(intent);
+      return parsed;
+    })();
+    const [parsed] = await Promise.all([work, this.delay(1900)]);
+    const tiers = this.buildCarts(parsed.shopping_list);
+    const built = tiers[1] || tiers[0] || { items: [] };
+    const qCart = {};
+    (built.items || []).forEach(i => { qCart[i.p.id] = i.qty; });
+    this.setState({ quickStep: 'results', qVibe: String(parsed.vibe_category || 'default'), qList: parsed.shopping_list, qCart, quickAddQuery: '', thinkingStage: 4 });
+  }
+
+  // ---- editable quick cart ----
+  qInc(id) { const c = { ...this.state.qCart }; c[id] = (c[id] || 0) + 1; this.setState({ qCart: c }); }
+  qDec(id) { const c = { ...this.state.qCart }; c[id] = (c[id] || 0) - 1; if (c[id] <= 0) delete c[id]; this.setState({ qCart: c }); }
+  qRemove(id) { const c = { ...this.state.qCart }; delete c[id]; this.setState({ qCart: c }); }
+  qAddItem(id) { const c = { ...this.state.qCart }; c[id] = (c[id] || 0) + 1; this.setState({ qCart: c, quickAddQuery: '' }); }
+  quickCheckout() {
+    const qc = this.state.qCart;
+    if (!Object.keys(qc).length) { this.flash('Your cart is empty'); return; }
+    const c = { ...this.state.cart };
+    Object.entries(qc).forEach(([id, q]) => { c[id] = (c[id] || 0) + q; });
+    this.setCart(c);
+    const count = Object.values(qc).reduce((a, b) => a + b, 0);
+    this.setState({ quickOpen: false });
+    this.go('checkout');
+    this.flash('Added ' + count + ' items to cart');
+  }
+
+  vibeTheme(v) {
+    const m = {
+      party: { name: 'Party', emoji: '🎉', accent: '#e0218a', soft: '#fce4f1', grad: 'linear-gradient(120deg,#e0218a 0%,#ff7847 100%)' },
+      movie: { name: 'Movie night', emoji: '🍿', accent: '#7b2ff7', soft: '#efe7fd', grad: 'linear-gradient(120deg,#7b2ff7,#e0218a)' },
+      healthy: { name: 'Healthy', emoji: '🥗', accent: '#1f8a4c', soft: '#e3f5ea', grad: 'linear-gradient(120deg,#1f8a4c,#7bc47f)' },
+      breakfast: { name: 'Breakfast', emoji: '🍳', accent: '#d98300', soft: '#fdf0d8', grad: 'linear-gradient(120deg,#d98300,#ffc24d)' },
+      hydration: { name: 'Hydration', emoji: '💧', accent: '#0a9fc2', soft: '#dff3f8', grad: 'linear-gradient(120deg,#0a9fc2,#56c8e0)' },
+      comfort: { name: 'Comfort food', emoji: '🍜', accent: '#c2560f', soft: '#fbe9dd', grad: 'linear-gradient(120deg,#c2560f,#ff9248)' },
+      restock: { name: 'Home restock', emoji: '🛒', accent: '#2a5bd7', soft: '#e3eafb', grad: 'linear-gradient(120deg,#2a5bd7,#6f9bff)' },
+      celebration: { name: 'Celebration', emoji: '🎊', accent: '#e0218a', soft: '#fce4f1', grad: 'linear-gradient(120deg,#e0218a,#ff7847)' },
+      snack: { name: 'Snack run', emoji: '🍫', accent: '#c2560f', soft: '#fbe9dd', grad: 'linear-gradient(120deg,#c2560f,#ff9248)' },
+    };
+    const key = Object.keys(m).find(k => String(v).toLowerCase().includes(k));
+    return m[key] || { name: String(v || 'Picks'), emoji: '✦', accent: '#ff9900', soft: '#fff3e0', grad: 'linear-gradient(120deg,#ff9900,#ff7847)' };
+  }
+
+  // ---- Conversational mode ----
+  openConv(seed) {
+    const txt = (seed || '').trim();
+    const patch = { convOpen: true, convStep: 'chat', convInput: txt, heroValue: '' };
+    if (!this.state.convMsgs.length) patch.convMsgs = [{ role: 'assistant', text: "Hi Aarav 👋 Tell me what you need and I'll build your cart right here — try “snacks and cold drinks for movie night” or “breakfast for tomorrow”." }];
+    this.setState(patch);
+    window.scrollTo({ top: 0 });
+  }
+  closeConv() { this.setState({ convOpen: false }); }
+  resetConv() { this.setState({ convMsgs: [], convCart: {}, convInput: '', convStep: 'chat', convOrder: null }, () => this.openConv('')); }
+  onConvHero(v) { if (!this.state.convOpen && v.trim()) this.openConv(v); else this.setState({ heroValue: v }); }
+  catalogBrief() { return CATALOG.map(p => p.id + '|' + p.name + ' (' + p.brand + ') ' + p.size + ' ₹' + p.price).join('\n'); }
+  async sendConv() {
+    const text = this.state.convInput.trim();
+    if (!text || this.state.convBusy) return;
+    const msgs = [...this.state.convMsgs, { role: 'user', text }];
+    this.setState({ convMsgs: msgs, convInput: '', convBusy: true });
+    let result = null;
+    try {
+      if (window.claude && window.claude.complete) {
+        const history = msgs.map(m => (m.role === 'user' ? 'Customer' : 'Assistant') + ': ' + m.text).join('\n');
+        const prompt = 'You are "Amazon Now", a warm, concise quick-commerce shopping assistant. '
+          + 'You may ONLY recommend products from this catalog (format id|name):\n' + this.catalogBrief() + '\n\n'
+          + 'Conversation so far:\n' + history + '\n\n'
+          + 'Reply to the customer and update their cart. Respond with STRICT minified JSON only, no markdown: '
+          + '{"reply":"<1-2 friendly sentences>","add":[{"id":"<catalog id>","qty":<int>}],"remove":["<catalog id>"]}. '
+          + 'Only use ids that exist in the catalog. Only add items the customer clearly wants now. Keep reply short and natural.';
+        const raw = await window.claude.complete({ messages: [{ role: 'user', content: prompt }] });
+        result = JSON.parse(this.extractJSON(raw));
+      }
+    } catch (e) { result = null; }
+    if (!result || typeof result !== 'object') result = this.convFallback(text);
+    this.applyConv(result);
+  }
+  convFallback(text) {
+    const dec = this.localDecompose(text);
+    const add = [];
+    (dec.shopping_list || []).forEach(it => { const c = this.retrieve(it.query); if (c[0]) add.push({ id: c[0].p.id, qty: Math.max(1, it.quantity || 1) }); });
+    const names = add.map(a => { const p = CATALOG.find(x => x.id === a.id); return p ? p.name : ''; }).filter(Boolean);
+    const reply = names.length
+      ? ('Added ' + names.slice(0, 3).join(', ') + (names.length > 3 ? ' and a couple more' : '') + ' to your cart. Anything else?')
+      : 'I can help with that — try naming a few things like cola, chips, milk or popcorn.';
+    return { reply, add, remove: [] };
+  }
+  applyConv(result) {
+    const cart = { ...this.state.convCart };
+    (result.add || []).forEach(a => { if (CATALOG.find(x => x.id === a.id)) cart[a.id] = (cart[a.id] || 0) + Math.max(1, a.qty || 1); });
+    (result.remove || []).forEach(id => { delete cart[id]; });
+    const msgs = [...this.state.convMsgs, { role: 'assistant', text: result.reply || 'Done — anything else?' }];
+    this.setState({ convCart: cart, convMsgs: msgs, convBusy: false });
+  }
+  convInc(id) { const c = { ...this.state.convCart }; c[id] = (c[id] || 0) + 1; this.setState({ convCart: c }); }
+  convDec(id) { const c = { ...this.state.convCart }; c[id] = (c[id] || 0) - 1; if (c[id] <= 0) delete c[id]; this.setState({ convCart: c }); }
+  convRemoveItem(id) { const c = { ...this.state.convCart }; delete c[id]; this.setState({ convCart: c }); }
+  convGoCheckout() { if (!Object.keys(this.state.convCart).length) { this.flash('Add something to your cart first'); return; } this.setState({ convStep: 'checkout' }); }
+  convBackToChat() { this.setState({ convStep: 'chat' }); }
+  async convPayNow() {
+    this.setState({ convStep: 'paying' });
+    await this.delay(2100);
+    const lns = Object.keys(this.state.convCart).map(id => { const p = CATALOG.find(x => x.id === id); return p ? { p, id, qty: this.state.convCart[id] } : null; }).filter(Boolean);
+    const total = lns.reduce((a, l) => a + l.p.price * l.qty, 0);
+    const count = lns.reduce((a, l) => a + l.qty, 0);
+    const eta = lns.length ? Math.max(...lns.map(l => l.p.deliveryMin)) : 12;
+    this.recordOrder(lns);
+    this.setState({ convStep: 'done', convOrder: { id: 'AN' + Date.now().toString().slice(-8), total, count, eta }, convCart: {} });
+  }
+  convFinish() { this.setState({ convOpen: false, convStep: 'chat', convMsgs: [], convOrder: null }); this.go('home'); }
+
+  // ---- Predictive mode ----
+  getPredictions() {
+    const now = Date.now(), day = 86400000;
+    const removed = new Set(this.state.predRemoved || []);
+    const skip = new Set(this.state.predSkip || []);
+    const snooze = this.state.predSnooze || {};
+    const out = [];
+    Object.keys(RECURRING).forEach(id => {
+      if (removed.has(id) || skip.has(id)) return;
+      if (snooze[id] && now < snooze[id]) return;
+      const orders = (this.state.orderHistory || []).filter(h => h.id === id).sort((a, b) => a.ts - b.ts);
+      if (!orders.length) return;
+      const last = orders[orders.length - 1].ts;
+      const cad = RECURRING[id];
+      const daysUntil = Math.round((last + cad * day - now) / day);
+      if (daysUntil > 1) return; // only nudge when it's about due
+      const p = CATALOG.find(x => x.id === id); if (!p) return;
+      out.push({ p, id, cad, daysUntil, lastDays: Math.max(1, Math.round((now - last) / day)) });
+    });
+    return out.sort((a, b) => a.daysUntil - b.daysUntil);
+  }
+  predAdd(id) { this.addToCart(id); this.setState(s => ({ predSkip: [...s.predSkip, id] })); }
+  predSkipItem(id) { this.setState(s => ({ predSkip: [...s.predSkip, id] })); this.flash('Skipped — back next cycle'); }
+  predSnoozeItem(id) { const sn = { ...this.state.predSnooze, [id]: Date.now() + 86400000 }; try { localStorage.setItem('ap_predsnooze_v1', JSON.stringify(sn)); } catch (e) {} this.setState({ predSnooze: sn }); this.flash("Snoozed — we'll remind you tomorrow"); }
+  predRemoveItem(id) { const r = [...new Set([...(this.state.predRemoved || []), id])]; try { localStorage.setItem('ap_predremoved_v1', JSON.stringify(r)); } catch (e) {} this.setState({ predRemoved: r }); const p = CATALOG.find(x => x.id === id); this.flash("We'll stop predicting " + (p ? p.name : 'this item')); }
+
+  // ---- nav ----
+  go(screen, extra) { this.setState({ screen, ...(extra || {}) }); window.scrollTo({ top: 0 }); }
+  openCategory(name) { this.go('category', { categoryName: name, activeSearch: '' }); }
+  openProduct(id) { this.go('product', { productId: id, detailQty: 1 }); }
+  runSearch() { const q = this.state.searchValue.trim(); if (q) this.go('category', { activeSearch: q, categoryName: '' }); }
+
+  // ---- card decoration ----
+  decorate(list) {
+    return list.map(p => ({
+      product: p, qty: this.state.cart[p.id] || 0,
+      onAdd: () => this.addToCart(p.id), onInc: () => this.inc(p.id), onDec: () => this.dec(p.id),
+      onOpen: () => this.openProduct(p.id),
+    }));
+  }
+
+  renderVals() {
+    const cats = CATEGORIES;
+    const byCat = (n) => CATALOG.filter(p => p.category === n);
+    const tileMeta = {
+      'Cold Drinks & Juices': { icon: '🥤', bg: '#fdefe0' }, 'Snacks & Munchies': { icon: '🍿', bg: '#fdf3df' },
+      'Party & Celebrations': { icon: '🎉', bg: '#fbe6ef' }, 'Dairy, Bread & Eggs': { icon: '🥚', bg: '#eaf4ff' },
+      'Breakfast & Instant Food': { icon: '🥣', bg: '#eefaf0' }, 'Fruits & Vegetables': { icon: '🥦', bg: '#edf9ee' },
+      'Personal Care': { icon: '🧴', bg: '#f0eefc' }, 'Pharmacy & Wellness': { icon: '💊', bg: '#e9f6f6' },
+    };
+    const deals = [...CATALOG].sort((a, b) => (1 - a.price / a.mrp) < (1 - b.price / b.mrp) ? 1 : -1).slice(0, 10);
+
+    // category / search list
+    const q = this.state.activeSearch.trim().toLowerCase();
+    let catList, catTitle;
+    if (q) { catTitle = this.state.activeSearch.trim(); const words = q.split(/\s+/); catList = CATALOG.filter(p => { const hay = (p.name + ' ' + p.brand + ' ' + p.tags.join(' ')).toLowerCase(); return words.some(w => hay.includes(w)); }); }
+    else { catTitle = this.state.categoryName; catList = byCat(this.state.categoryName); }
+    const sb = this.state.sortBy;
+    if (sb === 'price_low') catList = [...catList].sort((a, b) => a.price - b.price);
+    else if (sb === 'price_high') catList = [...catList].sort((a, b) => b.price - a.price);
+    else if (sb === 'rating') catList = [...catList].sort((a, b) => b.rating - a.rating);
+    else if (sb === 'discount') catList = [...catList].sort((a, b) => (1 - a.price / a.mrp) < (1 - b.price / b.mrp) ? 1 : -1);
+
+    // product detail
+    const prod = CATALOG.find(p => p.id === this.state.productId) || CATALOG[0];
+    const pDisc = prod.mrp > prod.price;
+    const related = CATALOG.filter(p => p.id !== prod.id && (p.category === prod.category || p.tags.some(t => prod.tags.includes(t)))).slice(0, 8);
+
+    // cart / checkout
+    const lns = this.lines();
+    const subtotal = lns.reduce((a, l) => a + l.p.price * l.qty, 0);
+    const mrpTotal = lns.reduce((a, l) => a + l.p.mrp * l.qty, 0);
+    const savings = mrpTotal - subtotal;
+    const itemCount = lns.reduce((a, l) => a + l.qty, 0);
+    const eta = lns.length ? Math.max(...lns.map(l => l.p.deliveryMin)) : 15;
+    const cartLines = lns.map(l => ({ name: l.p.name, brand: l.p.brand, size: l.p.size, qty: l.qty, delivery: l.p.deliveryMin, lineTotal: l.p.price * l.qty, onInc: () => this.inc(l.id), onDec: () => this.dec(l.id), onRemove: () => this.removeLine(l.id), onOpen: () => this.openProduct(l.id) }));
+    const pm = this.state.payMethod;
+    const order = this.state.order || {};
+    const vt = this.vibeTheme(this.state.qVibe);
+
+    // editable quick cart
+    const qLines = Object.keys(this.state.qCart).map(id => { const p = CATALOG.find(x => x.id === id); return p ? { p, id, qty: this.state.qCart[id] } : null; }).filter(Boolean);
+    const qSub = qLines.reduce((a, l) => a + l.p.price * l.qty, 0);
+    const qCount = qLines.reduce((a, l) => a + l.qty, 0);
+    const qEta = qLines.length ? Math.max(...qLines.map(l => l.p.deliveryMin)) : 12;
+    const qAddQ = this.state.quickAddQuery.trim().toLowerCase();
+    const qAddResults = qAddQ ? CATALOG.filter(p => !this.state.qCart[p.id] && (p.name + ' ' + p.brand + ' ' + p.tags.join(' ')).toLowerCase().includes(qAddQ)).slice(0, 6) : [];
+
+    // conversational
+    const convLines = Object.keys(this.state.convCart).map(id => { const p = CATALOG.find(x => x.id === id); return p ? { p, id, qty: this.state.convCart[id] } : null; }).filter(Boolean);
+    const convSub = convLines.reduce((a, l) => a + l.p.price * l.qty, 0);
+    const convCount = convLines.reduce((a, l) => a + l.qty, 0);
+    const convEta = convLines.length ? Math.max(...convLines.map(l => l.p.deliveryMin)) : 12;
+    const convOrder = this.state.convOrder || {};
+
+    // predictions
+    const preds = this.getPredictions();
+
+    return {
+      // nav
+      cartCount: this.cartCount(),
+      goHome: () => this.go('home'), goCart: () => this.go('cart'), openQuick: () => this.openQuickMode(),
+      navCategories: cats.map(n => ({ name: n, onOpen: () => this.openCategory(n) })),
+      searchValue: this.state.searchValue,
+      onSearchInput: (e) => this.setState({ searchValue: e.target.value }),
+      onSearchKey: (e) => { if (e.key === 'Enter') this.runSearch(); },
+      runSearch: () => this.runSearch(),
+
+      // screen flags
+      isHome: this.state.screen === 'home',
+      toast: this.state.toast,
+
+      // category / search
+      isCategory: this.state.screen === 'category',
+      catTitle, catCount: catList.length,
+      hasResults: catList.length > 0, noResults: catList.length === 0,
+      categoryProducts: this.decorate(catList),
+      filterCats: cats.map(n => ({ name: n, onClick: () => this.openCategory(n), color: (!q && n === this.state.categoryName) ? '#0f1111' : '#007185', weight: (!q && n === this.state.categoryName) ? '800' : '400', bg: (!q && n === this.state.categoryName) ? '#f3f4f4' : 'transparent' })),
+      sortOptions: [{ key: 'relevance', label: 'Relevance' }, { key: 'price_low', label: 'Price: Low to High' }, { key: 'price_high', label: 'Price: High to Low' }, { key: 'rating', label: 'Avg. customer review' }, { key: 'discount', label: 'Biggest discount' }].map(o => ({ label: o.label, onClick: () => this.setState({ sortBy: o.key }), color: sb === o.key ? '#0f1111' : '#007185', weight: sb === o.key ? '800' : '400', bg: sb === o.key ? '#f3f4f4' : 'transparent' })),
+
+      // product detail
+      isProduct: this.state.screen === 'product',
+      pBrand: prod.brand, pName: prod.name, pCategory: prod.category, pSize: prod.size,
+      pPrice: prod.price, pMrp: prod.mrp, pSave: prod.mrp - prod.price,
+      pDelivery: prod.deliveryMin, pRating: prod.rating, pRatingCount: prod.ratingCount.toLocaleString('en-IN'),
+      pTags: prod.tags.slice(0, 5), pStarPct: (prod.rating / 5 * 100).toFixed(1) + '%',
+      pHasDiscount: pDisc, pDiscountStr: pDisc ? '-' + Math.round((1 - prod.price / prod.mrp) * 100) + '%' : '',
+      pImageEl: prod.img
+        ? React.createElement('img', { src: prod.img, alt: prod.name, style: { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '30px', boxSizing: 'border-box' } })
+        : React.createElement('span', { style: { fontFamily: "'Courier New',monospace", fontSize: '14px', color: '#9aa0a6' } }, '[ ' + prod.name + ' ]'),
+      pThumbs: [0, 1, 2, 3].map(i => ({ label: prod.name, border: i === 0 ? '#febd69' : '#e0e0e0' })),
+      pOpenCat: () => this.openCategory(prod.category),
+      detailQty: this.state.detailQty,
+      incDetail: () => this.setState(s => ({ detailQty: s.detailQty + 1 })),
+      decDetail: () => this.setState(s => ({ detailQty: Math.max(1, s.detailQty - 1) })),
+      addDetail: () => this.addToCart(prod.id, this.state.detailQty),
+      buyNow: () => { this.addToCart(prod.id, this.state.detailQty); this.go('checkout'); },
+      fbtCards: this.decorate(related),
+
+      // cart
+      isCart: this.state.screen === 'cart',
+      cartHasItems: lns.length > 0, cartEmpty: lns.length === 0,
+      cartLines, cartItemCount: itemCount, cartSubtotal: subtotal,
+      cartSavings: savings, cartHasSavings: savings > 0, cartSavingsPct: mrpTotal ? Math.round(savings / mrpTotal * 100) : 0,
+      cartEta: eta,
+      goCheckout: () => { if (this.cartCount() > 0) this.go('checkout'); },
+
+      // checkout
+      isCheckout: this.state.screen === 'checkout',
+      placeOrder: () => this.placeOrder(),
+      payMethods: [{ key: 'upi', icon: '📱', label: 'UPI · GPay / PhonePe / Paytm' }, { key: 'card', icon: '💳', label: 'Credit / Debit card' }, { key: 'cod', icon: '💵', label: 'Cash on delivery' }].map(o => ({ label: o.label, icon: o.icon, onClick: () => this.setState({ payMethod: o.key }), border: pm === o.key ? '#ff9900' : '#e0e0e0', bg: pm === o.key ? '#fff8ee' : '#fff', dot: pm === o.key ? '#ff9900' : '#999', dotFill: pm === o.key ? '#ff9900' : 'transparent' })),
+
+      // success
+      isSuccess: this.state.screen === 'success',
+      orderId: order.id, orderEta: order.eta, orderCount: order.count, orderTotal: order.total,
+
+      // quick mode
+      quickOpen: this.state.quickOpen,
+      quickInput: this.state.quickStep === 'input',
+      quickThinking: this.state.quickStep === 'thinking',
+      quickResults: this.state.quickStep === 'results',
+      stop: (e) => e.stopPropagation(),
+      closeQuick: () => this.closeQuick(),
+      runQuick: () => this.runQuick(),
+      backToInput: () => this.setState({ quickStep: 'input' }),
+      qIntent: this.state.qIntent,
+      onQIntent: (e) => this.setState({ qIntent: e.target.value }),
+      qGroup: this.state.qGroup,
+      incGroup: () => this.setState(s => ({ qGroup: Math.min(20, s.qGroup + 1) })),
+      decGroup: () => this.setState(s => ({ qGroup: Math.max(1, s.qGroup - 1) })),
+      quickChips: [
+        { label: '🎬 Movie night for 4', t: 'movie night for 4 people, medium budget' },
+        { label: '🍳 Breakfast for 2', t: 'breakfast essentials for 2' },
+        { label: '🎉 Birthday party at home', t: 'birthday party snacks and drinks for 8' },
+        { label: '💧 Summer hydration', t: 'cold drinks and water for a hot day, 6 people' },
+      ].map(c => ({ label: c.label, onClick: () => this.setState({ qIntent: c.t }) })),
+      thinkStages: ['Understanding your intent', 'Classifying the vibe', 'Searching the catalog', 'Assembling 3 carts'].map((label, i) => {
+        const active = Math.min(this.state.thinkingStage, 3);
+        if (i < active) return { label, mark: '✓', dotBg: '#007600', dotColor: '#fff', border: 'none', weight: '700', textColor: '#0f1111', opacity: '1' };
+        if (i === active) return { label, mark: '●', dotBg: '#fff', dotColor: '#ff9900', border: '2px solid #ff9900', weight: '800', textColor: '#0f1111', opacity: '1' };
+        return { label, mark: '' + (i + 1), dotBg: '#eef1f3', dotColor: '#8a8f94', border: 'none', weight: '400', textColor: '#8a8f94', opacity: '0.5' };
+      }),
+      vName: vt.name, vEmoji: vt.emoji, vAccent: vt.accent, vSoft: vt.soft, vGrad: vt.grad,
+      qListChips: (this.state.qList || []).map(it => ({ label: it.query + ' ×' + (it.quantity || 1) })),
+      qCartLines: qLines.map(l => ({ id: l.id, name: l.p.name, brand: l.p.brand, size: l.p.size, qty: l.qty, lineTotal: l.p.price * l.qty, tintBg: l.p.tint.bg, tintFg: l.p.tint.fg, onInc: () => this.qInc(l.id), onDec: () => this.qDec(l.id), onRemove: () => this.qRemove(l.id) })),
+      qCartSubtotal: qSub, qCartCount: qCount, qCartEta: qEta, qCartHasItems: qLines.length > 0, qCartEmpty: qLines.length === 0,
+      quickAddQuery: this.state.quickAddQuery,
+      onQuickAddInput: (e) => this.setState({ quickAddQuery: e.target.value }),
+      quickAddResults: qAddResults.map(p => ({ id: p.id, name: p.name, brand: p.brand, price: p.price, tintBg: p.tint.bg, tintFg: p.tint.fg, onAdd: () => this.qAddItem(p.id) })),
+      quickHasAddResults: qAddResults.length > 0,
+      quickCheckout: () => this.quickCheckout(),
+
+      // conversational mode
+      convOpen: this.state.convOpen,
+      chatRef: this.chatRef,
+      convChat: this.state.convStep === 'chat',
+      convCheckoutStep: this.state.convStep === 'checkout',
+      convPaying: this.state.convStep === 'paying',
+      convDone: this.state.convStep === 'done',
+      closeConv: () => this.closeConv(),
+      resetConv: () => this.resetConv(),
+      convMsgs: this.state.convMsgs.map((m, i) => ({ text: m.text, isUser: m.role === 'user', isBot: m.role !== 'user' })),
+      convBusy: this.state.convBusy,
+      convInputVal: this.state.convInput,
+      onConvInput: (e) => this.setState({ convInput: e.target.value }),
+      onConvKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendConv(); } },
+      sendConv: () => this.sendConv(),
+      convChips: [
+        { label: '🍿 Movie night snacks', t: 'snacks and cold drinks for movie night' },
+        { label: '🍳 Breakfast for tomorrow', t: 'breakfast for tomorrow' },
+        { label: '💧 Cold drinks for guests', t: 'cold drinks for 6 guests' },
+      ].map(c => ({ label: c.label, onClick: () => this.setState({ convInput: c.t }) })),
+      convLines: convLines.map(l => ({ id: l.id, name: l.p.name, brand: l.p.brand, size: l.p.size, qty: l.qty, lineTotal: l.p.price * l.qty, tintBg: l.p.tint.bg, tintFg: l.p.tint.fg, onInc: () => this.convInc(l.id), onDec: () => this.convDec(l.id), onRemove: () => this.convRemoveItem(l.id) })),
+      convCartHasItems: convLines.length > 0, convCartEmpty: convLines.length === 0,
+      convSubtotal: convSub, convCount: convCount, convEta: convEta,
+      convGoCheckout: () => this.convGoCheckout(),
+      convBackToChat: () => this.convBackToChat(),
+      convPayNow: () => this.convPayNow(),
+      convFinish: () => this.convFinish(),
+      convPayMethods: [
+        { key: 'upi', icon: '📱', label: 'UPI · GPay / PhonePe / Paytm' },
+        { key: 'card', icon: '💳', label: 'Credit / Debit card' },
+        { key: 'cod', icon: '💵', label: 'Cash on delivery' },
+      ].map(o => ({ label: o.label, icon: o.icon, onClick: () => this.setState({ convPay: o.key }), border: this.state.convPay === o.key ? '#ff9900' : '#e0e0e0', bg: this.state.convPay === o.key ? '#fff8ee' : '#fff', dotFill: this.state.convPay === o.key ? '#ff9900' : 'transparent', dot: this.state.convPay === o.key ? '#ff9900' : '#999' })),
+      convPayLabel: ({ upi: 'UPI', card: 'card', cod: 'cash on delivery' })[this.state.convPay] || 'UPI',
+      convOrderId: convOrder.id, convOrderEta: convOrder.eta, convOrderCount: convOrder.count, convOrderTotal: convOrder.total,
+
+      // predictive mode
+      hasPredictions: preds.length > 0,
+      predictions: preds.map(pr => ({
+        id: pr.id, name: pr.p.name, brand: pr.p.brand, size: pr.p.size, price: pr.p.price,
+        tintBg: pr.p.tint.bg, tintFg: pr.p.tint.fg,
+        cadence: pr.cad === 1 ? 'Every day' : ('Every ' + pr.cad + ' days'),
+        lastLabel: pr.lastDays === 1 ? 'Ordered yesterday' : ('Last ordered ' + pr.lastDays + ' days ago'),
+        dueLabel: pr.daysUntil <= 0 ? 'Due now' : 'Due tomorrow',
+        onAdd: () => this.predAdd(pr.id), onSkip: () => this.predSkipItem(pr.id), onSnooze: () => this.predSnoozeItem(pr.id), onRemove: () => this.predRemoveItem(pr.id),
+      })),
+
+      // hero → Conversational mode
+      heroValue: this.state.heroValue,
+      onHeroInput: (e) => this.onConvHero(e.target.value),
+      onHeroKey: (e) => { if (e.key === 'Enter') this.openConv(this.state.heroValue); },
+      submitHero: () => this.openConv(this.state.heroValue),
+      heroChips: [
+        { label: '🎬 Movie night for 4', onClick: () => this.openConv('snacks and cold drinks for movie night, 4 people') },
+        { label: '🏠 Weekly home restock', onClick: () => this.openConv('weekly grocery restock for a family of 3') },
+        { label: '☀️ Summer hydration kit', onClick: () => this.openConv('cold drinks and water for a hot day, 6 people') },
+      ],
+
+      // home content
+      categoryTiles: cats.slice(0, 5).map(n => ({ name: n, icon: (tileMeta[n] || {}).icon || '🛒', bg: (tileMeta[n] || {}).bg || '#f0f2f2', onOpen: () => this.openCategory(n) })),
+      homeRows: [
+        { title: "Today's top deals", subtitle: 'Lowest prices, delivered in minutes', cards: this.decorate(deals), onSeeAll: () => this.openCategory('Cold Drinks & Juices') },
+        { title: 'Cold Drinks & Juices', subtitle: 'Chilled and ready to go', cards: this.decorate(byCat('Cold Drinks & Juices')), onSeeAll: () => this.openCategory('Cold Drinks & Juices') },
+        { title: 'Snacks & Munchies', subtitle: 'Perfect for the binge', cards: this.decorate(byCat('Snacks & Munchies')), onSeeAll: () => this.openCategory('Snacks & Munchies') },
+      ],
+    };
+  }
+}
+
+// ===================== CATALOG =====================
+const CATEGORIES = ['Breakfast & Instant Food','Cold Drinks & Juices','Dairy, Bread & Eggs','Fruits & Vegetables','Party & Celebrations','Personal Care','Pharmacy & Wellness','Snacks & Munchies'];
+
+const CATALOG = [
+  // Cold Drinks & Juices
+  { id:'mdew', brand:'MOUNTAIN DEW', name:'Mountain Dew', category:'Cold Drinks & Juices', size:'750 ml', price:33, mrp:40, rating:4.9, ratingCount:1328, deliveryMin:15, img:'', tags:['soft drink','fizzy','soda','citrus','party','cold drink'] },
+  { id:'tropi', brand:'TROPICANA', name:'Tropicana Orange No Pulp', category:'Cold Drinks & Juices', size:'1 L', price:100, mrp:120, rating:4.8, ratingCount:1302, deliveryMin:9, img:'', tags:['juice','orange','healthy','breakfast'] },
+  { id:'lipton', brand:'LIPTON', name:'Lipton Iced Tea Lemon', category:'Cold Drinks & Juices', size:'250 ml', price:26, mrp:30, rating:4.3, ratingCount:885, deliveryMin:15, img:'', tags:['iced tea','tea','chilled','beverages','cold drink'] },
+  { id:'badam', brand:'AMUL', name:'Amul Kool Badam', category:'Cold Drinks & Juices', size:'200 ml', price:28, mrp:30, rating:4.2, ratingCount:1536, deliveryMin:14, img:'', tags:['milk','badam','almond','drink','dairy'] },
+  { id:'7up', brand:'7UP', name:'7UP Lemon', category:'Cold Drinks & Juices', size:'750 ml', price:34, mrp:40, rating:4.5, ratingCount:1539, deliveryMin:19, img:'', tags:['soft drink','fizzy','lemon','soda','party','cold drink'] },
+  { id:'fanta', brand:'FANTA', name:'Fanta Orange', category:'Cold Drinks & Juices', size:'750 ml', price:35, mrp:40, rating:4.4, ratingCount:1100, deliveryMin:11, img:'', tags:['soft drink','orange','fizzy','soda','party','cold drink'] },
+  { id:'frooti', brand:'FROOTI', name:'Frooti Mango Drink', category:'Cold Drinks & Juices', size:'600 ml', price:35, mrp:42, rating:4.6, ratingCount:980, deliveryMin:14, img:'', tags:['mango','juice','drink','cold drink'] },
+  { id:'maaza', brand:'MAAZA', name:'Maaza Mango', category:'Cold Drinks & Juices', size:'600 ml', price:38, mrp:45, rating:4.5, ratingCount:1200, deliveryMin:17, img:'', tags:['mango','juice','drink','cold drink'] },
+  { id:'bisleri', brand:'BISLERI', name:'Bisleri Packaged Drinking Water', category:'Cold Drinks & Juices', size:'1 L', price:17, mrp:20, rating:4.7, ratingCount:2300, deliveryMin:18, img:'', tags:['water','mineral water','hydration'] },
+  { id:'limca', brand:'LIMCA', name:'Limca', category:'Cold Drinks & Juices', size:'750 ml', price:33, mrp:37, rating:4.4, ratingCount:760, deliveryMin:19, img:'', tags:['soft drink','lemon','fizzy','soda','cold drink'] },
+  { id:'coke', brand:'COCA-COLA', name:'Coca-Cola', category:'Cold Drinks & Juices', size:'750 ml', price:40, mrp:45, rating:4.8, ratingCount:3200, deliveryMin:12, img:'', tags:['cola','coke','soft drink','fizzy','soda','party','cold drink'] },
+  { id:'pepsi', brand:'PEPSI', name:'Pepsi', category:'Cold Drinks & Juices', size:'750 ml', price:38, mrp:45, rating:4.7, ratingCount:2900, deliveryMin:13, img:'', tags:['cola','coke','soft drink','fizzy','soda','party','cold drink'] },
+  { id:'redbull', brand:'RED BULL', name:'Red Bull Energy Drink', category:'Cold Drinks & Juices', size:'250 ml', price:125, mrp:135, rating:4.6, ratingCount:1500, deliveryMin:16, img:'', tags:['energy drink','caffeine','cold drink'] },
+
+  // Snacks & Munchies
+  { id:'lays', brand:"LAY'S", name:"Lay's Classic Salted Chips", category:'Snacks & Munchies', size:'52 g', price:20, mrp:25, rating:4.7, ratingCount:4100, deliveryMin:10, img:'', tags:['chips','snacks','party','potato'] },
+  { id:'kurkure', brand:'KURKURE', name:'Kurkure Masala Munch', category:'Snacks & Munchies', size:'90 g', price:20, mrp:25, rating:4.6, ratingCount:3800, deliveryMin:10, img:'', tags:['chips','snacks','spicy','party'] },
+  { id:'bingo', brand:'BINGO', name:'Bingo Mad Angles', category:'Snacks & Munchies', size:'80 g', price:20, mrp:25, rating:4.4, ratingCount:1900, deliveryMin:12, img:'', tags:['chips','snacks','party'] },
+  { id:'doritos', brand:'DORITOS', name:'Doritos Nacho Cheese', category:'Snacks & Munchies', size:'70 g', price:50, mrp:60, rating:4.5, ratingCount:900, deliveryMin:13, img:'', tags:['chips','snacks','nacho','party'] },
+  { id:'actii', brand:'ACT II', name:'Act II Butter Popcorn', category:'Snacks & Munchies', size:'70 g', price:35, mrp:40, rating:4.6, ratingCount:2200, deliveryMin:11, img:'', tags:['popcorn','snacks','movie','party'] },
+  { id:'bhujia', brand:"HALDIRAM'S", name:"Haldiram's Aloo Bhujia", category:'Snacks & Munchies', size:'200 g', price:52, mrp:60, rating:4.7, ratingCount:5200, deliveryMin:12, img:'', tags:['namkeen','snacks','spicy'] },
+  { id:'pringles', brand:'PRINGLES', name:'Pringles Original', category:'Snacks & Munchies', size:'107 g', price:99, mrp:115, rating:4.5, ratingCount:1300, deliveryMin:14, img:'', tags:['chips','snacks','party'] },
+
+  // Party & Celebrations
+  { id:'silk', brand:'CADBURY', name:'Dairy Milk Silk', category:'Party & Celebrations', size:'60 g', price:80, mrp:90, rating:4.8, ratingCount:6100, deliveryMin:12, img:'', tags:['chocolate','sweet','party','dessert'] },
+  { id:'kitkat', brand:'NESTLÉ', name:'KitKat 4 Finger', category:'Party & Celebrations', size:'37 g', price:40, mrp:45, rating:4.7, ratingCount:3300, deliveryMin:12, img:'', tags:['chocolate','sweet','party','dessert'] },
+  { id:'ferrero', brand:'FERRERO', name:'Ferrero Rocher 3 pcs', category:'Party & Celebrations', size:'37.5 g', price:120, mrp:150, rating:4.8, ratingCount:980, deliveryMin:15, img:'', tags:['chocolate','premium','gift','party','dessert'] },
+  { id:'oreo', brand:'OREO', name:'Oreo Original Cookies', category:'Party & Celebrations', size:'120 g', price:35, mrp:40, rating:4.6, ratingCount:2700, deliveryMin:11, img:'', tags:['biscuit','cookies','snacks','party','dessert'] },
+
+  // Dairy, Bread & Eggs
+  { id:'butter', brand:'AMUL', name:'Amul Butter', category:'Dairy, Bread & Eggs', size:'100 g', price:56, mrp:60, rating:4.8, ratingCount:4500, deliveryMin:10, img:'', tags:['butter','dairy','breakfast'] },
+  { id:'bread', brand:'BRITANNIA', name:'Britannia Brown Bread', category:'Dairy, Bread & Eggs', size:'400 g', price:45, mrp:50, rating:4.4, ratingCount:1800, deliveryMin:12, img:'', tags:['bread','breakfast'] },
+  { id:'eggs', brand:'FRESHO', name:'Farm Eggs (6 pcs)', category:'Dairy, Bread & Eggs', size:'6 pcs', price:54, mrp:60, rating:4.5, ratingCount:2100, deliveryMin:13, img:'', tags:['eggs','breakfast','protein'] },
+  { id:'milk', brand:'AMUL', name:'Amul Gold Full Cream Milk', category:'Dairy, Bread & Eggs', size:'500 ml', price:35, mrp:37, rating:4.7, ratingCount:3900, deliveryMin:9, img:'', tags:['milk','dairy','breakfast'] },
+
+  // Breakfast & Instant Food
+  { id:'maggi', brand:'MAGGI', name:'Maggi 2-Minute Noodles (4 pack)', category:'Breakfast & Instant Food', size:'280 g', price:56, mrp:60, rating:4.8, ratingCount:8200, deliveryMin:11, img:'', tags:['noodles','instant','comfort','quick meal'] },
+  { id:'cornflakes', brand:"KELLOGG'S", name:"Kellogg's Corn Flakes", category:'Breakfast & Instant Food', size:'475 g', price:185, mrp:210, rating:4.5, ratingCount:1600, deliveryMin:14, img:'', tags:['cereal','breakfast','healthy'] },
+];
+
+// ---- clean color tiles (stand-ins for product photos) ----
+function tileTint(p) {
+  const s = (p.name + ' ' + p.brand + ' ' + (p.tags || []).join(' ')).toLowerCase();
+  const rules = [
+    [/cola|coke|pepsi/, '#f4e2dc', '#9c2f1c'],
+    [/lemon|lime|limca|7up|dew|citrus/, '#e9f2cf', '#566b14'],
+    [/orange|fanta|tropicana/, '#ffe7c6', '#b25a08'],
+    [/mango|frooti|maaza/, '#ffedbe', '#a9760a'],
+    [/water|bisleri|mineral/, '#dbeefb', '#1c6a94'],
+    [/energy|red ?bull|caffeine/, '#e2e5fb', '#34409e'],
+    [/iced tea|lipton|\btea\b/, '#f1e6cb', '#876a22'],
+    [/badam|almond/, '#f6ead3', '#8a6a2c'],
+    [/\bmilk\b|dairy/, '#fbf4e2', '#8f7327'],
+    [/butter/, '#fdf1cf', '#9a7a16'],
+    [/bread/, '#f3e4cd', '#8a5a22'],
+    [/\begg/, '#fdf2cf', '#9a7d22'],
+    [/noodle|maggi|instant/, '#fbe4c6', '#a85c12'],
+    [/cereal|corn ?flakes|flakes/, '#fceabf', '#a07410'],
+    [/popcorn/, '#fbeecb', '#9c7414'],
+    [/chocolate|silk|kitkat|ferrero|dairy milk/, '#ece0d2', '#6a4324'],
+    [/biscuit|cookie|oreo/, '#ece2d6', '#6f4b28'],
+    [/chips|kurkure|bingo|doritos|pringles|namkeen|bhujia|snack/, '#fdeaca', '#a6580c'],
+  ];
+  for (const [re, bg, fg] of rules) { if (re.test(s)) return { bg, fg }; }
+  return { bg: '#eef1f3', fg: '#37475a' };
+}
+CATALOG.forEach(p => { p.tint = tileTint(p); });
+
+// ---- predictive: replenishable staples + how often they recur (days) ----
+const RECURRING = { milk: 2, bisleri: 2, bread: 3, badam: 3, eggs: 4, maggi: 5, butter: 7, cornflakes: 10 };
+function seedHistory() {
+  const now = Date.now(), day = 86400000, hist = [];
+  Object.entries(RECURRING).forEach(([id, cad]) => {
+    // 4 past purchases, the last placed just past one cadence ago so it reads as "due now"
+    for (let k = 4; k >= 1; k--) hist.push({ id, ts: now - Math.round((k * cad + cad * 0.12) * day) });
+  });
+  return hist;
+}
+
+</script>
+</body>
+</html>

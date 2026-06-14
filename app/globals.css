@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --color-nav-ink: #131921;
+  --color-nav-ink-2: #232f3e;
+  --color-nav-ink-3: #37475a;
+  --color-accent-amber: #febd69;
+  --color-accent-orange: #ff9900;
+  --color-cta-yellow-1: #f7dfa5;
+  --color-cta-yellow-2: #f0c14b;
+  --color-cta-border: #c89411;
+  --color-link: #007185;
+  --color-link-hover: #c45500;
+  --color-price-red: #cc0c39;
+  --color-success-green: #007600;
+  --color-delivery-dot: #46e07f;
+  --color-page-bg: #eaeded;
+  --color-card-bg: #ffffff;
+  --color-card-border: #e7e7e7;
+  --color-text-primary: #0f1111;
+  --color-text-secondary: #565959;
+  --color-text-tertiary: #8a8f94;
+
+  --font-sans: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #eaeded;
+    color: #0f1111;
+    font-family: Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #c7cdd1; border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  button { font-family: inherit; }
+  a { color: inherit; text-decoration: none; }
+}
+
+@keyframes ap-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ap-pulse {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+@keyframes ap-spin { to { transform: rotate(360deg); } }
+@keyframes ap-toast {
+  0%   { opacity: 0; transform: translateY(20px); }
+  12%  { opacity: 1; transform: translateY(0); }
+  88%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(20px); }
+}
+
+.ap-card-hover {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.ap-card-hover:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.ap-cta-yellow {
+  background: linear-gradient(#f7dfa5, #f0c14b);
+  border: 1px solid #c89411;
+}
+.ap-cta-yellow:hover {
+  background: linear-gradient(#f5d78e, #eeb933);
+}
+.ap-cta-orange {
+  background: linear-gradient(#ffd97a, #ff9900);
+  border: 1px solid #c89411;
+}
+.ap-cta-orange:hover { filter: brightness(1.05); }
+
+.ap-no-scrollbar::-webkit-scrollbar { display: none; }
+.ap-no-scrollbar { scrollbar-width: none; }

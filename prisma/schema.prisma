@@ -1,0 +1,47 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Product {
+  id           String   @id
+  name         String
+  brand        String
+  category     String
+  subCategory  String
+  size         String
+  price        Int
+  mrp          Int
+  rating       Float
+  ratingCount  Int
+  deliveryMin  Int
+  status       String
+  tags         String[]
+  rankScore    Float    @default(0)
+  img          String
+
+  @@index([category])
+  @@index([brand])
+  @@index([subCategory])
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  userId        String   @default("garv")
+  items         Json
+  subtotal      Int
+  savings       Int
+  total         Int
+  paymentMethod String
+  zoneCode      String   @default("110001")
+  deliveryMin   Int
+  address       Json
+  status        String   @default("placed")
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+}
