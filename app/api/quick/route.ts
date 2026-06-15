@@ -1,44 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { QuickRequestSchema } from "@/lib/schemas";
 import type { CartLineItem } from "@/lib/services/tier-builder";
-
-const SMARTCART_URL = process.env.SMARTCART_API_URL ?? "http://localhost:3001";
-const SMARTCART_KEY = process.env.SMARTCART_API_KEY;
-
-type SmartCartItem = {
-  productId: string;
-  name: string;
-  image: string;
-  price: number;
-  quantity: string;
-  rating?: number;
-  reviews?: number;
-  brand: string;
-  subCategory: string;
-  requirement: string;
-  resolverPath?: string;
-};
-
-type SmartCartResponse = {
-  status: "success" | "partial_success" | "clarification_required" | "failed";
-  queryType?: string;
-  reply?: string;
-  requirements?: {
-    essentials?: { name: string }[];
-    recommended?: { name: string }[];
-    premium?: { name: string }[];
-  };
-  cart?: {
-    essentials?: SmartCartItem[];
-    recommended?: SmartCartItem[];
-    premiumSuggestions?: SmartCartItem[];
-  };
-  audit?: {
-    valid?: boolean;
-    removed?: { productId: string; reason?: string }[];
-    summary?: string;
-  };
-};
+import {
+  planCart,
+  mergeCartItems,
+  SmartCartError,
+  type SmartCartItem,
+} from "@/lib/services/smartcart";
 
 const VIBE_BY_QUERY_TYPE: Record<string, string> = {
   festival: "celebration",
@@ -88,37 +56,14 @@ export async function POST(req: NextRequest) {
   }
   const { intent, zoneCode } = parsed.data;
 
-  const upstreamBody = { query: intent };
-  const upstreamUrl = `${SMARTCART_URL}/v1/cart/plan`;
-  console.log("→ POST", upstreamUrl, JSON.stringify(upstreamBody));
-
-  let response: SmartCartResponse;
+  let response;
   try {
-    const upstream = await fetch(upstreamUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(SMARTCART_KEY ? { Authorization: `Bearer ${SMARTCART_KEY}` } : {}),
-      },
-      body: JSON.stringify(upstreamBody),
-      cache: "no-store",
-    });
-    if (!upstream.ok) {
-      const text = await upstream.text().catch(() => "");
-      console.log("←", upstream.status, text);
-      return NextResponse.json(
-        { error: `SmartCart upstream error (${upstream.status})` },
-        { status: 502 },
-      );
-    }
-    response = (await upstream.json()) as SmartCartResponse;
-    console.log("←", upstream.status, JSON.stringify(response));
+    response = await planCart({ query: intent });
   } catch (err) {
-    console.log("← error", (err as Error).message);
-    return NextResponse.json(
-      { error: `SmartCart unreachable: ${(err as Error).message}` },
-      { status: 502 },
-    );
+    if (err instanceof SmartCartError) {
+      return NextResponse.json({ error: err.message }, { status: err.httpStatus });
+    }
+    throw err;
   }
 
   if (response.status === "failed" || !response.cart) {
@@ -128,41 +73,21 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const removed = new Set((response.audit?.removed ?? []).map((r) => r.productId));
-  const keep = (arr?: SmartCartItem[]) => (arr ?? []).filter((i) => !removed.has(i.productId));
-
-  const essentials = keep(response.cart.essentials);
-  const recommended = keep(response.cart.recommended);
-  const premium = keep(response.cart.premiumSuggestions);
-
-  const merged = new Map<string, CartLineItem>();
-  for (const item of [...essentials, ...recommended, ...premium]) {
-    if (merged.has(item.productId)) continue;
-    merged.set(item.productId, toLineItem(item));
-  }
-  const items = Array.from(merged.values());
-
+  const items = mergeCartItems(response).map(toLineItem);
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);
   const itemCount = items.reduce((s, i) => s + i.qty, 0);
-  const deliveryMin = items.length ? 13 : 13;
+  const deliveryMin = 13;
 
   const shopping_list = (response.requirements?.essentials ?? []).map((r) => ({
     query: r.name,
     quantity: 1,
   }));
 
-  const out = {
+  return NextResponse.json({
     vibe_category: deriveVibe(response.queryType, intent),
     shopping_list,
-    cart: {
-      items,
-      total,
-      savings: 0,
-      itemCount,
-      deliveryMin,
-    },
+    cart: { items, total, savings: 0, itemCount, deliveryMin },
     usedFallback: false,
     zoneCode,
-  };
-  return NextResponse.json(out);
+  });
 }
