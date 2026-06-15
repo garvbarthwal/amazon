@@ -77,13 +77,10 @@ function toLineItem(item: SmartCartItem): CartLineItem {
 }
 
 export async function POST(req: NextRequest) {
-  const reqId = Math.random().toString(36).slice(2, 8);
   const body = await req.json().catch(() => null);
-  console.log(`[quick ${reqId}] ← client`, JSON.stringify(body));
 
   const parsed = QuickRequestSchema.safeParse(body);
   if (!parsed.success) {
-    console.log(`[quick ${reqId}] ✗ invalid request`, parsed.error.issues);
     return NextResponse.json(
       { error: "Invalid request", issues: parsed.error.issues },
       { status: 400 },
@@ -92,12 +89,12 @@ export async function POST(req: NextRequest) {
   const { intent, zoneCode } = parsed.data;
 
   const upstreamBody = { query: intent };
-  console.log(`[quick ${reqId}] → ${SMARTCART_URL}/v1/cart/plan`, JSON.stringify(upstreamBody));
+  const upstreamUrl = `${SMARTCART_URL}/v1/cart/plan`;
+  console.log("→ POST", upstreamUrl, JSON.stringify(upstreamBody));
 
   let response: SmartCartResponse;
-  const t0 = Date.now();
   try {
-    const upstream = await fetch(`${SMARTCART_URL}/v1/cart/plan`, {
+    const upstream = await fetch(upstreamUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -108,16 +105,16 @@ export async function POST(req: NextRequest) {
     });
     if (!upstream.ok) {
       const text = await upstream.text().catch(() => "");
-      console.log(`[quick ${reqId}] ✗ upstream ${upstream.status} (${Date.now() - t0}ms)`, text);
+      console.log("←", upstream.status, text);
       return NextResponse.json(
         { error: `SmartCart upstream error (${upstream.status})` },
         { status: 502 },
       );
     }
     response = (await upstream.json()) as SmartCartResponse;
-    console.log(`[quick ${reqId}] ← upstream ${upstream.status} (${Date.now() - t0}ms)`, JSON.stringify(response));
+    console.log("←", upstream.status, JSON.stringify(response));
   } catch (err) {
-    console.log(`[quick ${reqId}] ✗ upstream unreachable (${Date.now() - t0}ms)`, (err as Error).message);
+    console.log("← error", (err as Error).message);
     return NextResponse.json(
       { error: `SmartCart unreachable: ${(err as Error).message}` },
       { status: 502 },
@@ -125,7 +122,6 @@ export async function POST(req: NextRequest) {
   }
 
   if (response.status === "failed" || !response.cart) {
-    console.log(`[quick ${reqId}] ✗ status=${response.status} reply=${response.reply}`);
     return NextResponse.json(
       { error: response.reply ?? "SmartCart could not build a cart for that request." },
       { status: 422 },
@@ -168,6 +164,5 @@ export async function POST(req: NextRequest) {
     usedFallback: false,
     zoneCode,
   };
-  console.log(`[quick ${reqId}] → client items=${items.length} total=${total} vibe=${out.vibe_category}`);
   return NextResponse.json(out);
 }

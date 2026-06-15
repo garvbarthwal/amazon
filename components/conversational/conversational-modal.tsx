@@ -17,11 +17,11 @@ const SUGGESTIONS = [
   { label: "💧 Cold drinks for guests", text: "cold drinks for 6 guests" },
 ];
 
-// Fixed front-end questions. Order matters — they fire sequentially.
-const QUESTIONS: ConvQuestion[] = [
-  { key: "groupSize", prompt: "How many people is this for?", options: ["1", "2", "4", "6", "8+"] },
-  { key: "taste",     prompt: "Sweet, savoury, or both?",      options: ["sweet", "savoury", "both"] },
-  { key: "healthy",   prompt: "Keep it healthy?",              options: ["yes", "no", "doesn't matter"] },
+// Last-resort fallback if the questions endpoint and its own LLM fallback both fail.
+const FALLBACK_QUESTIONS: ConvQuestion[] = [
+  { key: "group_size", prompt: "How many people is this for?", options: ["1", "2", "4", "6", "8+"] },
+  { key: "taste",      prompt: "Sweet, savoury, or both?",      options: ["sweet", "savoury", "both"] },
+  { key: "healthy",    prompt: "Keep it healthy?",              options: ["yes", "no", "doesn't matter"] },
 ];
 
 const PAY_METHODS: Array<{ key: ConvPay; icon: string; label: string }> = [
@@ -65,6 +65,7 @@ export function ConversationalModal() {
   const advanceQ = useConv((s) => s.advanceQ);
   const clearPending = useConv((s) => s.clearPending);
   const qIndex = useConv((s) => s.qIndex);
+  const pendingQuestions = useConv((s) => s.pendingQuestions);
 
   const appendOrder = usePredictionStore((s) => s.appendOrder);
 
@@ -112,6 +113,21 @@ export function ConversationalModal() {
     return (await res.json()) as ConvApiResponse;
   };
 
+  const fetchQuestions = async (query: string): Promise<ConvQuestion[]> => {
+    try {
+      const res = await fetch("/api/conversation/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      if (!res.ok) return FALLBACK_QUESTIONS;
+      const j = (await res.json()) as { questions?: ConvQuestion[] };
+      return j.questions && j.questions.length > 0 ? j.questions : FALLBACK_QUESTIONS;
+    } catch {
+      return FALLBACK_QUESTIONS;
+    }
+  };
+
   const applyResponse = (data: ConvApiResponse) => {
     if (data.items && data.items.length > 0) {
       setCartLines(data.items as ConvCartLine[]);
@@ -123,17 +139,17 @@ export function ConversationalModal() {
   // fire the API in one go with all collected parameters.
   const submitAnswer = async (answer: string) => {
     const state = useConv.getState();
-    if (state.qIndex < 0 || state.qIndex >= QUESTIONS.length) return;
-    const q = QUESTIONS[state.qIndex];
+    const qs = state.pendingQuestions;
+    if (state.qIndex < 0 || state.qIndex >= qs.length) return;
+    const q = qs[state.qIndex];
 
     pushMessage({ role: "user", text: answer });
     recordAnswer(q.key, answer);
     advanceQ();
 
     const after = useConv.getState();
-    if (after.qIndex < QUESTIONS.length) {
-      // Ask the next question.
-      pushMessage({ role: "assistant", text: QUESTIONS[after.qIndex].prompt });
+    if (after.qIndex < after.pendingQuestions.length) {
+      pushMessage({ role: "assistant", text: after.pendingQuestions[after.qIndex].prompt });
       return;
     }
 
@@ -159,7 +175,8 @@ export function ConversationalModal() {
     if (!text || busy) return;
 
     const state = useConv.getState();
-    const answeringQ = state.qIndex >= 0 && state.qIndex < QUESTIONS.length;
+    const answeringQ =
+      state.qIndex >= 0 && state.qIndex < state.pendingQuestions.length;
 
     setInput("");
 
@@ -169,10 +186,16 @@ export function ConversationalModal() {
       return;
     }
 
-    // Brand-new query — start the question flow.
+    // Brand-new query — fetch query-specific questions, then ask Q1.
     pushMessage({ role: "user", text });
-    startQuery(text);
-    pushMessage({ role: "assistant", text: QUESTIONS[0].prompt });
+    setBusy(true);
+    try {
+      const questions = await fetchQuestions(text);
+      startQuery(text, questions);
+      pushMessage({ role: "assistant", text: questions[0].prompt });
+    } finally {
+      setBusy(false);
+    }
   };
 
   const goCheckout = () => {
@@ -326,8 +349,8 @@ export function ConversationalModal() {
                 {/* Composer */}
                 <div className="p-[12px_16px_16px] border-t border-[#eee] bg-white">
                   <div className="flex flex-wrap gap-[7px] mb-[10px]">
-                    {qIndex >= 0 && qIndex < QUESTIONS.length
-                      ? QUESTIONS[qIndex].options.map((opt) => (
+                    {qIndex >= 0 && qIndex < pendingQuestions.length
+                      ? pendingQuestions[qIndex].options.map((opt) => (
                           <button
                             key={opt}
                             onClick={() => submitAnswer(opt)}
@@ -359,7 +382,7 @@ export function ConversationalModal() {
                         }
                       }}
                       placeholder={
-                        qIndex >= 0 && qIndex < QUESTIONS.length
+                        qIndex >= 0 && qIndex < pendingQuestions.length
                           ? "Tap an option above, or type your own…"
                           : "Tell me what you need…"
                       }

@@ -37,6 +37,7 @@ type State = {
 
   pendingQuery: string;
   pendingParameters: Record<string, string>;
+  pendingQuestions: ConvQuestion[];
   qIndex: number;
 
   openWithSeed: (seed: string) => void;
@@ -54,7 +55,7 @@ type State = {
   setOrder: (o: ConvOrder | null) => void;
   clearCart: () => void;
 
-  startQuery: (query: string) => void;
+  startQuery: (query: string, questions: ConvQuestion[]) => void;
   recordAnswer: (key: string, answer: string) => void;
   advanceQ: () => void;
   clearPending: () => void;
@@ -79,6 +80,7 @@ export const useConv = create<State>((set, get) => ({
 
   pendingQuery: "",
   pendingParameters: {},
+  pendingQuestions: [],
   qIndex: -1,
 
   openWithSeed: (seed) => {
@@ -94,7 +96,7 @@ export const useConv = create<State>((set, get) => ({
   close: () => set({ open: false, zoomedFromHero: false }),
   reset: () => set({
     messages: [WELCOME], cart: {}, input: "", step: "chat", order: null, busy: false,
-    pendingQuery: "", pendingParameters: {}, qIndex: -1,
+    pendingQuery: "", pendingParameters: {}, pendingQuestions: [], qIndex: -1,
   }),
   setInput: (v) => set({ input: v }),
   pushMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
@@ -132,13 +134,13 @@ export const useConv = create<State>((set, get) => ({
   setOrder: (order) => set({ order }),
   clearCart: () => set({ cart: {} }),
 
-  startQuery: (query) =>
-    set({ pendingQuery: query, pendingParameters: {}, qIndex: 0 }),
+  startQuery: (query, questions) =>
+    set({ pendingQuery: query, pendingParameters: {}, pendingQuestions: questions, qIndex: 0 }),
   recordAnswer: (key, answer) =>
     set((s) => ({
       pendingParameters: { ...s.pendingParameters, [key]: answer },
     })),
   advanceQ: () => set((s) => ({ qIndex: s.qIndex + 1 })),
   clearPending: () =>
-    set({ pendingQuery: "", pendingParameters: {}, qIndex: -1 }),
+    set({ pendingQuery: "", pendingParameters: {}, pendingQuestions: [], qIndex: -1 }),
 }));
