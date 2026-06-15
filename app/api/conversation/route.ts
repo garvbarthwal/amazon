@@ -1,158 +1,146 @@
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
-import { invokeLLM, isLLMConfigured } from "@/lib/gemini";
-import { fallbackDecompose } from "@/lib/services/intent";
-import { retrieveCandidates } from "@/lib/services/retrieval";
-import { fetchByIds } from "@/lib/services/products";
+
+const SMARTCART_URL = process.env.SMARTCART_API_URL ?? "http://localhost:3007";
+const SMARTCART_KEY = process.env.SMARTCART_API_KEY;
 
 const ConversationRequestSchema = z.object({
-  messages: z
-    .array(
-      z.object({
-        role: z.enum(["user", "assistant"]),
-        text: z.string().min(1).max(2000),
-      }),
-    )
-    .min(1)
-    .max(40),
-  cart: z.record(z.string(), z.number().int().nonnegative()).default({}),
-  zoneCode: z.string().min(3).max(10).default("110001"),
+  query: z.string().min(1).max(2000),
+  parameters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).default({}),
+  sessionId: z.string().optional(),
 });
 
-const ResponseSchema = z.object({
-  reply: z.string().min(1),
-  add: z
-    .array(
-      z.object({
-        id: z.string(),
-        qty: z.number().int().min(1).max(10),
-      }),
-    )
-    .default([]),
-  remove: z.array(z.string()).default([]),
-});
+type SmartCartItem = {
+  productId: string;
+  name: string;
+  image: string;
+  price: number;
+  quantity: string;
+  brand: string;
+  subCategory: string;
+  requirement: string;
+};
 
-const SYSTEM_PROMPT = [
-  'You are "Amazon Picks", a warm, concise quick-commerce shopping assistant.',
-  "You may ONLY recommend products that exist in the catalog the user provides.",
-  "Reply with STRICT minified JSON only — no markdown, no prose, no code fences:",
-  '{"reply":"<1-2 friendly sentences>","add":[{"id":"<catalog id>","qty":<int>}],"remove":["<catalog id>"]}.',
-  "Rules:",
-  "- Only use ids that exist in the catalog. If unsure, omit the item.",
-  "- Only add items the customer clearly wants now.",
-  "- Keep reply short and natural; do not list ids in the reply.",
-  '- If the user asks for something not in the catalog, suggest the closest available item in the reply and either add it or wait for confirmation.',
-].join(" ");
+type SmartCartResponse = {
+  requestId?: string;
+  sessionId?: string;
+  status: "success" | "partial_success" | "clarification_required" | "failed";
+  reply?: string;
+  questions?: string[];
+  cart?: {
+    essentials?: SmartCartItem[];
+    recommended?: SmartCartItem[];
+    premiumSuggestions?: SmartCartItem[];
+  };
+  audit?: { removed?: { productId: string }[] };
+};
 
-function tryParseJSON(s: string): unknown {
-  const t = s.trim();
-  try { return JSON.parse(t); } catch {}
-  const m = t.match(/\{[\s\S]*\}/);
-  if (m) { try { return JSON.parse(m[0]); } catch {} }
-  return null;
-}
+export type ConvLine = {
+  productId: string;
+  name: string;
+  brand: string;
+  price: number;
+  size: string;
+  img: string;
+  qty: number;
+  subCategory?: string;
+};
 
-async function buildCatalogBrief(): Promise<{ brief: string; ids: Set<string> }> {
-  // Pull a usefully sized slice of the catalog ranked by rankScore.
-  // Brief format per line: id|name (brand) size ₹price
-  const { items } = await import("@/lib/services/products").then((m) =>
-    m.listProducts({ pageSize: 60, sort: "relevance" }),
-  );
-  const lines: string[] = [];
-  const ids = new Set<string>();
-  for (const p of items) {
-    lines.push(`${p.id}|${p.name} (${p.brand}) ${p.size} ₹${p.price}`);
-    ids.add(p.id);
-  }
-  return { brief: lines.join("\n"), ids };
-}
-
-async function ruleFallback(lastUserText: string): Promise<{
+export type ConvApiResponse = {
+  status: SmartCartResponse["status"];
   reply: string;
-  add: { id: string; qty: number }[];
-  remove: string[];
-}> {
-  const dec = fallbackDecompose(lastUserText, 4);
-  const add: { id: string; qty: number }[] = [];
-  const names: string[] = [];
-  for (const item of dec.shopping_list) {
-    const cands = await retrieveCandidates(item.query, 4);
-    const top = cands[0];
-    if (top) {
-      add.push({ id: top.id, qty: Math.max(1, item.quantity || 1) });
-      names.push(top.name);
-    }
-  }
-  const reply =
-    names.length > 0
-      ? `Added ${names.slice(0, 3).join(", ")}${names.length > 3 ? " and a couple more" : ""} to your cart. Anything else?`
-      : "I can help with that — try naming a few things like cola, chips, milk or popcorn.";
-  return { reply, add, remove: [] };
+  questions: string[];
+  items: ConvLine[];
+  sessionId?: string;
+};
+
+function toLine(item: SmartCartItem): ConvLine {
+  return {
+    productId: item.productId,
+    name: item.name,
+    brand: item.brand,
+    price: item.price,
+    size: item.quantity,
+    img: item.image,
+    qty: 1,
+    subCategory: item.subCategory,
+  };
 }
 
 export async function POST(req: NextRequest) {
+  const reqId = Math.random().toString(36).slice(2, 8);
   const body = await req.json().catch(() => null);
+  console.log(`[conv ${reqId}] ← client`, JSON.stringify(body));
+
   const parsed = ConversationRequestSchema.safeParse(body);
   if (!parsed.success) {
+    console.log(`[conv ${reqId}] ✗ invalid request`, parsed.error.issues);
     return NextResponse.json(
       { error: "Invalid request", issues: parsed.error.issues },
       { status: 400 },
     );
   }
-  const { messages, cart } = parsed.data;
-  const lastUser = [...messages].reverse().find((m) => m.role === "user");
-  const lastUserText = lastUser?.text ?? "";
+  const { query, parameters, sessionId } = parsed.data;
 
-  let validIds: Set<string> | null = null;
-  let usedFallback = false;
-  let result: { reply: string; add: { id: string; qty: number }[]; remove: string[] };
+  const upstreamBody = {
+    query,
+    parameters,
+    ...(sessionId ? { sessionId } : {}),
+  };
+  console.log(`[conv ${reqId}] → ${SMARTCART_URL}/v1/cart/plan`, JSON.stringify(upstreamBody));
 
+  let response: SmartCartResponse;
+  const t0 = Date.now();
   try {
-    if (!isLLMConfigured()) throw new Error("LLM not configured");
-    const { brief, ids } = await buildCatalogBrief();
-    validIds = ids;
-
-    const cartLines = Object.entries(cart)
-      .filter(([, q]) => q > 0)
-      .map(([id, q]) => `${id}×${q}`)
-      .join(", ");
-    const transcript = messages
-      .map((m) => `${m.role === "user" ? "Customer" : "Assistant"}: ${m.text}`)
-      .join("\n");
-
-    const userMsg = [
-      "CATALOG (id|name (brand) size ₹price):",
-      brief,
-      "",
-      cartLines ? `CURRENT CART: ${cartLines}` : "CURRENT CART: empty",
-      "",
-      "CONVERSATION:",
-      transcript,
-      "",
-      "Reply now as the assistant.",
-    ].join("\n");
-
-    const raw = await invokeLLM({ system: SYSTEM_PROMPT, user: userMsg, maxTokens: 500, temperature: 0.4 });
-    const json = tryParseJSON(raw);
-    const v = ResponseSchema.safeParse(json);
-    if (!v.success) throw new Error("Invalid LLM JSON");
-    result = v.data;
-  } catch {
-    usedFallback = true;
-    result = await ruleFallback(lastUserText);
-  }
-
-  // Validate any returned ids against the catalog.
-  if (!validIds) {
-    const all = await fetchByIds(
-      Array.from(
-        new Set([...result.add.map((a) => a.id), ...result.remove]),
-      ),
+    const upstream = await fetch(`${SMARTCART_URL}/v1/cart/plan`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(SMARTCART_KEY ? { Authorization: `Bearer ${SMARTCART_KEY}` } : {}),
+      },
+      body: JSON.stringify(upstreamBody),
+      cache: "no-store",
+    });
+    if (!upstream.ok) {
+      const text = await upstream.text().catch(() => "");
+      console.log(`[conv ${reqId}] ✗ upstream ${upstream.status} (${Date.now() - t0}ms)`, text);
+      return NextResponse.json(
+        { error: `SmartCart upstream error (${upstream.status})` },
+        { status: 502 },
+      );
+    }
+    response = (await upstream.json()) as SmartCartResponse;
+    console.log(`[conv ${reqId}] ← upstream ${upstream.status} (${Date.now() - t0}ms)`, JSON.stringify(response));
+  } catch (err) {
+    console.log(`[conv ${reqId}] ✗ upstream unreachable (${Date.now() - t0}ms)`, (err as Error).message);
+    return NextResponse.json(
+      { error: `SmartCart unreachable: ${(err as Error).message}` },
+      { status: 502 },
     );
-    validIds = new Set(all.map((p) => p.id));
   }
-  const add = result.add.filter((a) => validIds!.has(a.id));
-  const remove = result.remove.filter((id) => validIds!.has(id));
 
-  return NextResponse.json({ reply: result.reply, add, remove, usedFallback });
+  const removed = new Set((response.audit?.removed ?? []).map((r) => r.productId));
+  const keep = (arr?: SmartCartItem[]) =>
+    (arr ?? []).filter((i) => !removed.has(i.productId));
+
+  const merged = new Map<string, ConvLine>();
+  for (const item of [
+    ...keep(response.cart?.essentials),
+    ...keep(response.cart?.recommended),
+    ...keep(response.cart?.premiumSuggestions),
+  ]) {
+    if (!merged.has(item.productId)) merged.set(item.productId, toLine(item));
+  }
+
+  const out: ConvApiResponse = {
+    status: response.status,
+    reply: response.reply ?? "",
+    questions: response.questions ?? [],
+    items: Array.from(merged.values()),
+    sessionId: response.sessionId,
+  };
+  console.log(
+    `[conv ${reqId}] → client status=${out.status} questions=${out.questions.length} items=${out.items.length}`,
+  );
+  return NextResponse.json(out);
 }

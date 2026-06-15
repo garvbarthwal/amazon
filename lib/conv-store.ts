@@ -7,16 +7,37 @@ export type ConvStep = "chat" | "checkout" | "paying" | "done";
 export type ConvPay = "upi" | "card" | "cod";
 export type ConvOrder = { id: string; total: number; count: number; eta: number };
 
+export type ConvCartLine = {
+  productId: string;
+  name: string;
+  brand: string;
+  price: number;
+  size: string;
+  img: string;
+  qty: number;
+  subCategory?: string;
+};
+
+export type ConvQuestion = {
+  key: string;
+  prompt: string;
+  options: string[];
+};
+
 type State = {
   open: boolean;
   step: ConvStep;
   messages: ConvMessage[];
   input: string;
   busy: boolean;
-  cart: Record<string, number>;
+  cart: Record<string, ConvCartLine>;
   pay: ConvPay;
   order: ConvOrder | null;
   zoomedFromHero: boolean;
+
+  pendingQuery: string;
+  pendingParameters: Record<string, string>;
+  qIndex: number;
 
   openWithSeed: (seed: string) => void;
   close: () => void;
@@ -24,7 +45,7 @@ type State = {
   setInput: (v: string) => void;
   pushMessage: (m: ConvMessage) => void;
   setBusy: (b: boolean) => void;
-  applyPatch: (patch: { add: { id: string; qty: number }[]; remove: string[] }) => void;
+  setCartLines: (lines: ConvCartLine[]) => void;
   inc: (id: string) => void;
   dec: (id: string) => void;
   removeOne: (id: string) => void;
@@ -32,6 +53,11 @@ type State = {
   setPay: (p: ConvPay) => void;
   setOrder: (o: ConvOrder | null) => void;
   clearCart: () => void;
+
+  startQuery: (query: string) => void;
+  recordAnswer: (key: string, answer: string) => void;
+  advanceQ: () => void;
+  clearPending: () => void;
 };
 
 const WELCOME: ConvMessage = {
@@ -51,6 +77,10 @@ export const useConv = create<State>((set, get) => ({
   order: null,
   zoomedFromHero: false,
 
+  pendingQuery: "",
+  pendingParameters: {},
+  qIndex: -1,
+
   openWithSeed: (seed) => {
     const cur = get();
     set({
@@ -64,26 +94,31 @@ export const useConv = create<State>((set, get) => ({
   close: () => set({ open: false, zoomedFromHero: false }),
   reset: () => set({
     messages: [WELCOME], cart: {}, input: "", step: "chat", order: null, busy: false,
+    pendingQuery: "", pendingParameters: {}, qIndex: -1,
   }),
   setInput: (v) => set({ input: v }),
   pushMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
   setBusy: (b) => set({ busy: b }),
-  applyPatch: ({ add, remove }) =>
-    set((s) => {
-      const cart = { ...s.cart };
-      for (const a of add) {
-        cart[a.id] = (cart[a.id] ?? 0) + Math.max(1, a.qty);
-      }
-      for (const id of remove) delete cart[id];
+  setCartLines: (lines) =>
+    set(() => {
+      const cart: Record<string, ConvCartLine> = {};
+      for (const l of lines) cart[l.productId] = l;
       return { cart };
     }),
-  inc: (id) => set((s) => ({ cart: { ...s.cart, [id]: (s.cart[id] ?? 0) + 1 } })),
+  inc: (id) =>
+    set((s) => {
+      const line = s.cart[id];
+      if (!line) return s;
+      return { cart: { ...s.cart, [id]: { ...line, qty: line.qty + 1 } } };
+    }),
   dec: (id) =>
     set((s) => {
-      const next = (s.cart[id] ?? 0) - 1;
+      const line = s.cart[id];
+      if (!line) return s;
+      const next = line.qty - 1;
       const cart = { ...s.cart };
       if (next <= 0) delete cart[id];
-      else cart[id] = next;
+      else cart[id] = { ...line, qty: next };
       return { cart };
     }),
   removeOne: (id) =>
@@ -96,4 +131,14 @@ export const useConv = create<State>((set, get) => ({
   setPay: (pay) => set({ pay }),
   setOrder: (order) => set({ order }),
   clearCart: () => set({ cart: {} }),
+
+  startQuery: (query) =>
+    set({ pendingQuery: query, pendingParameters: {}, qIndex: 0 }),
+  recordAnswer: (key, answer) =>
+    set((s) => ({
+      pendingParameters: { ...s.pendingParameters, [key]: answer },
+    })),
+  advanceQ: () => set((s) => ({ qIndex: s.qIndex + 1 })),
+  clearPending: () =>
+    set({ pendingQuery: "", pendingParameters: {}, qIndex: -1 }),
 }));

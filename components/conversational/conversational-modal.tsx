@@ -1,21 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, X, RotateCcw, Send, ArrowLeft, Check, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { useConv, type ConvPay } from "@/lib/conv-store";
-import { useCart } from "@/lib/cart-store";
+import { useConv, type ConvPay, type ConvCartLine, type ConvQuestion } from "@/lib/conv-store";
 import { usePredictionStore } from "@/lib/prediction-store";
 import { ProductTile } from "@/components/product-tile";
 import { formatRupees } from "@/lib/format";
 import { isRecurring } from "@/lib/recurring";
-import type { ProductDTO } from "@/lib/services/products";
+import type { ConvApiResponse } from "@/app/api/conversation/route";
 
 const SUGGESTIONS = [
   { label: "🍿 Movie night snacks", text: "snacks and cold drinks for movie night" },
   { label: "🍳 Breakfast for tomorrow", text: "breakfast for tomorrow" },
   { label: "💧 Cold drinks for guests", text: "cold drinks for 6 guests" },
+];
+
+// Fixed front-end questions. Order matters — they fire sequentially.
+const QUESTIONS: ConvQuestion[] = [
+  { key: "groupSize", prompt: "How many people is this for?", options: ["1", "2", "4", "6", "8+"] },
+  { key: "taste",     prompt: "Sweet, savoury, or both?",      options: ["sweet", "savoury", "both"] },
+  { key: "healthy",   prompt: "Keep it healthy?",              options: ["yes", "no", "doesn't matter"] },
 ];
 
 const PAY_METHODS: Array<{ key: ConvPay; icon: string; label: string }> = [
@@ -29,6 +35,8 @@ const PAY_LABEL: Record<ConvPay, string> = {
   card: "card",
   cod: "cash on delivery",
 };
+
+const ETA_MIN = 13;
 
 export function ConversationalModal() {
   const open = useConv((s) => s.open);
@@ -44,7 +52,7 @@ export function ConversationalModal() {
   const setInput = useConv((s) => s.setInput);
   const pushMessage = useConv((s) => s.pushMessage);
   const setBusy = useConv((s) => s.setBusy);
-  const applyPatch = useConv((s) => s.applyPatch);
+  const setCartLines = useConv((s) => s.setCartLines);
   const inc = useConv((s) => s.inc);
   const dec = useConv((s) => s.dec);
   const removeOne = useConv((s) => s.removeOne);
@@ -52,28 +60,16 @@ export function ConversationalModal() {
   const setPay = useConv((s) => s.setPay);
   const setOrder = useConv((s) => s.setOrder);
   const clearCart = useConv((s) => s.clearCart);
+  const startQuery = useConv((s) => s.startQuery);
+  const recordAnswer = useConv((s) => s.recordAnswer);
+  const advanceQ = useConv((s) => s.advanceQ);
+  const clearPending = useConv((s) => s.clearPending);
+  const qIndex = useConv((s) => s.qIndex);
 
   const appendOrder = usePredictionStore((s) => s.appendOrder);
 
-  const [products, setProducts] = useState<Record<string, ProductDTO>>({});
   const chatRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
-
-  // Hydrate product details for any id that lands in the conv cart.
-  useEffect(() => {
-    const need = Object.keys(cart).filter((id) => !products[id]);
-    if (need.length === 0) return;
-    fetch(`/api/products/by-ids?ids=${need.join(",")}`)
-      .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((d: { items: ProductDTO[] }) => {
-        setProducts((cur) => {
-          const next = { ...cur };
-          for (const p of d.items ?? []) next[p.id] = p;
-          return next;
-        });
-      })
-      .catch(() => {});
-  }, [cart, products]);
 
   useEffect(() => {
     if (!open) return;
@@ -81,10 +77,6 @@ export function ConversationalModal() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [open, messages, busy]);
 
-  // Focus the composer once the zoom animation lands so the user can keep
-  // typing right where they left off in the hero input. Without the timeout
-  // the ref is attached but the browser keeps focus on the hero <input> that
-  // triggered open, so the cursor "jumps away" mid-keystroke.
   useEffect(() => {
     if (!(open && step === "chat")) return;
     const t = setTimeout(() => {
@@ -97,7 +89,6 @@ export function ConversationalModal() {
     return () => clearTimeout(t);
   }, [open, step]);
 
-  // Auto-grow the textarea.
   useEffect(() => {
     const el = taRef.current;
     if (!el) return;
@@ -107,41 +98,81 @@ export function ConversationalModal() {
 
   if (!open) return null;
 
-  const lines = Object.entries(cart)
-    .map(([id, qty]) => ({ id, qty, p: products[id] }))
-    .filter((l) => l.p && l.qty > 0);
-  const subtotal = lines.reduce((s, l) => s + (l.p!.price * l.qty), 0);
+  const lines = Object.values(cart).filter((l) => l.qty > 0);
+  const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
   const count = lines.reduce((s, l) => s + l.qty, 0);
-  const eta = lines.length ? Math.max(...lines.map((l) => l.p!.deliveryMin), 12) : 12;
+  const eta = lines.length ? ETA_MIN : ETA_MIN;
 
-  const send = async () => {
-    const text = input.trim();
-    if (!text || busy) return;
-    pushMessage({ role: "user", text });
-    setInput("");
+  const callApi = async (query: string, parameters: Record<string, string>) => {
+    const res = await fetch("/api/conversation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, parameters }),
+    });
+    return (await res.json()) as ConvApiResponse;
+  };
+
+  const applyResponse = (data: ConvApiResponse) => {
+    if (data.items && data.items.length > 0) {
+      setCartLines(data.items as ConvCartLine[]);
+    }
+    pushMessage({ role: "assistant", text: data.reply || "Done — anything else?" });
+  };
+
+  // Submit a single answer to the current question. If it was the last one,
+  // fire the API in one go with all collected parameters.
+  const submitAnswer = async (answer: string) => {
+    const state = useConv.getState();
+    if (state.qIndex < 0 || state.qIndex >= QUESTIONS.length) return;
+    const q = QUESTIONS[state.qIndex];
+
+    pushMessage({ role: "user", text: answer });
+    recordAnswer(q.key, answer);
+    advanceQ();
+
+    const after = useConv.getState();
+    if (after.qIndex < QUESTIONS.length) {
+      // Ask the next question.
+      pushMessage({ role: "assistant", text: QUESTIONS[after.qIndex].prompt });
+      return;
+    }
+
+    // All answered — fire the API.
     setBusy(true);
     try {
-      const next = [...useConv.getState().messages]; // includes the just-pushed user msg
-      const res = await fetch("/api/conversation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next, cart }),
-      });
-      const j = (await res.json()) as {
-        reply: string;
-        add: { id: string; qty: number }[];
-        remove: string[];
-      };
-      applyPatch({ add: j.add ?? [], remove: j.remove ?? [] });
-      pushMessage({ role: "assistant", text: j.reply || "Done — anything else?" });
+      const data = await callApi(after.pendingQuery, after.pendingParameters);
+      clearPending();
+      applyResponse(data);
     } catch {
       pushMessage({
         role: "assistant",
         text: "Sorry, something went wrong on my end. Try again?",
       });
+      clearPending();
     } finally {
       setBusy(false);
     }
+  };
+
+  const send = async () => {
+    const text = input.trim();
+    if (!text || busy) return;
+
+    const state = useConv.getState();
+    const answeringQ = state.qIndex >= 0 && state.qIndex < QUESTIONS.length;
+
+    setInput("");
+
+    if (answeringQ) {
+      // User typed an answer instead of clicking a chip.
+      await submitAnswer(text);
+      return;
+    }
+
+    // Brand-new query — start the question flow.
+    pushMessage({ role: "user", text });
+    startQuery(text);
+    pushMessage({ role: "assistant", text: QUESTIONS[0].prompt });
   };
 
   const goCheckout = () => {
@@ -151,8 +182,10 @@ export function ConversationalModal() {
 
   const payNow = async () => {
     setStep("paying");
-    // Mock payment + order persistence in parallel.
-    const orderItems = lines.map((l) => ({ productId: l.id, qty: l.qty }));
+    // SmartCart productIds are foreign to the local catalog, so the orders
+    // endpoint will reject them — we keep the call for telemetry but fall back
+    // to a client-generated order id either way.
+    const orderItems = lines.map((l) => ({ productId: l.productId, qty: l.qty }));
     const payload = JSON.stringify({ items: orderItems, paymentMethod: pay });
     const start = Date.now();
     let serverOrderId: string | null = null;
@@ -170,7 +203,9 @@ export function ConversationalModal() {
     const elapsed = Date.now() - start;
     if (elapsed < 2100) await new Promise((r) => setTimeout(r, 2100 - elapsed));
 
-    const recurring = lines.filter((l) => isRecurring(l.p!)).map((l) => l.id);
+    const recurring = lines
+      .filter((l) => isRecurring({ name: l.name, brand: l.brand, tags: l.subCategory ? [l.subCategory] : [] }))
+      .map((l) => l.productId);
     appendOrder(recurring);
 
     const id = serverOrderId
@@ -291,15 +326,26 @@ export function ConversationalModal() {
                 {/* Composer */}
                 <div className="p-[12px_16px_16px] border-t border-[#eee] bg-white">
                   <div className="flex flex-wrap gap-[7px] mb-[10px]">
-                    {SUGGESTIONS.map((s) => (
-                      <button
-                        key={s.label}
-                        onClick={() => setInput(s.text)}
-                        className="bg-[#f3f4f4] hover:bg-[#f0ecff] hover:border-[#a796ff] border border-[#e0e0e0] text-[#37475a] text-[12px] px-[11px] py-[6px] rounded-[16px] cursor-pointer transition-colors"
-                      >
-                        {s.label}
-                      </button>
-                    ))}
+                    {qIndex >= 0 && qIndex < QUESTIONS.length
+                      ? QUESTIONS[qIndex].options.map((opt) => (
+                          <button
+                            key={opt}
+                            onClick={() => submitAnswer(opt)}
+                            disabled={busy}
+                            className="bg-[#f0ecff] hover:bg-[#e6dffd] border border-[#a796ff] text-[#37475a] text-[12px] font-bold px-[11px] py-[6px] rounded-[16px] cursor-pointer transition-colors disabled:opacity-50"
+                          >
+                            {opt}
+                          </button>
+                        ))
+                      : SUGGESTIONS.map((s) => (
+                          <button
+                            key={s.label}
+                            onClick={() => setInput(s.text)}
+                            className="bg-[#f3f4f4] hover:bg-[#f0ecff] hover:border-[#a796ff] border border-[#e0e0e0] text-[#37475a] text-[12px] px-[11px] py-[6px] rounded-[16px] cursor-pointer transition-colors"
+                          >
+                            {s.label}
+                          </button>
+                        ))}
                   </div>
                   <div className="flex gap-[10px] items-end">
                     <textarea
@@ -312,7 +358,11 @@ export function ConversationalModal() {
                           send();
                         }
                       }}
-                      placeholder="Tell me what you need…"
+                      placeholder={
+                        qIndex >= 0 && qIndex < QUESTIONS.length
+                          ? "Tap an option above, or type your own…"
+                          : "Tell me what you need…"
+                      }
                       rows={1}
                       className="flex-1 min-h-[46px] max-h-[120px] resize-none border-[1.5px] border-[#e0e0e0] rounded-[12px] px-[14px] py-[12px] text-[14px] outline-none box-border text-[#0f1111] leading-[1.4] focus:border-[#7b2ff7]"
                     />
@@ -346,26 +396,30 @@ export function ConversationalModal() {
                   ) : (
                     lines.map((l) => (
                       <div
-                        key={l.id}
+                        key={l.productId}
                         className="grid grid-cols-[46px_1fr] gap-[10px] items-center bg-white border border-[#ececec] rounded-[10px] p-[9px]"
                       >
                         <div className="w-[46px] h-[46px] rounded-[7px] overflow-hidden">
-                          <ProductTile product={l.p!} size="thumb-xs" showSize={false} />
+                          <ProductTile
+                            product={{ name: l.name, brand: l.brand, size: l.size, img: l.img, tags: l.subCategory ? [l.subCategory] : [] }}
+                            size="thumb-xs"
+                            showSize={false}
+                          />
                         </div>
                         <div className="min-w-0">
                           <div className="text-[12.5px] font-bold text-[#0f1111] leading-[1.2] line-clamp-1">
-                            {l.p!.name}
+                            {l.name}
                           </div>
                           <div className="text-[13px] font-extrabold text-[#0f1111] mt-[2px]">
-                            ₹{formatRupees(l.p!.price * l.qty)}
+                            ₹{formatRupees(l.price * l.qty)}
                           </div>
                           <div className="flex items-center gap-2 mt-[5px]">
                             <div className="flex items-center border border-[#d5d9d9] rounded-[7px] overflow-hidden">
-                              <button onClick={() => dec(l.id)} className="w-[26px] h-[24px] border-0 bg-[#f0f2f2] text-[14px] font-bold cursor-pointer">−</button>
+                              <button onClick={() => dec(l.productId)} className="w-[26px] h-[24px] border-0 bg-[#f0f2f2] text-[14px] font-bold cursor-pointer">−</button>
                               <span className="w-[26px] text-center text-[12px] font-bold">{l.qty}</span>
-                              <button onClick={() => inc(l.id)} className="w-[26px] h-[24px] border-0 bg-[#f0f2f2] text-[14px] font-bold cursor-pointer">+</button>
+                              <button onClick={() => inc(l.productId)} className="w-[26px] h-[24px] border-0 bg-[#f0f2f2] text-[14px] font-bold cursor-pointer">+</button>
                             </div>
-                            <button onClick={() => removeOne(l.id)} className="bg-transparent border-0 text-[#8a8f94] hover:text-[#cc0c39] text-[11px] cursor-pointer">
+                            <button onClick={() => removeOne(l.productId)} className="bg-transparent border-0 text-[#8a8f94] hover:text-[#cc0c39] text-[11px] cursor-pointer">
                               Remove
                             </button>
                           </div>
@@ -454,9 +508,9 @@ export function ConversationalModal() {
                   <div className="text-[15px] font-extrabold mb-3">Order summary</div>
                   <div className="flex flex-col gap-[7px] mb-3 max-h-[180px] overflow-auto">
                     {lines.map((l) => (
-                      <div key={l.id} className="flex justify-between gap-2 text-[13px] text-[#333]">
-                        <span className="overflow-hidden text-ellipsis whitespace-nowrap">{l.qty} × {l.p!.name}</span>
-                        <span className="font-bold whitespace-nowrap">₹{formatRupees(l.p!.price * l.qty)}</span>
+                      <div key={l.productId} className="flex justify-between gap-2 text-[13px] text-[#333]">
+                        <span className="overflow-hidden text-ellipsis whitespace-nowrap">{l.qty} × {l.name}</span>
+                        <span className="font-bold whitespace-nowrap">₹{formatRupees(l.price * l.qty)}</span>
                       </div>
                     ))}
                   </div>
